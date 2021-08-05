@@ -1,0 +1,11 @@
+[Unit]
+Description=NH8 Home Manager
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/nh8homemgr
+ExecStart=/usr/bin/python3 /opt/nh8homemgr/main.py -c /etc/nh8homemgr.cfg -l /var/log/nh8homemgr.log
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
