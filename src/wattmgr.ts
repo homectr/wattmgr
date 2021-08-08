@@ -27,6 +27,7 @@ mqtt.client.on('connect', function () {
 export function start() {
   log.info('Starting WattManager');
   isRunning = true;
+  outputs.forEach((o) => o.emit('off'));
   loop();
 }
 
