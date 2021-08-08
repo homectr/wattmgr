@@ -32,6 +32,7 @@ export function start() {
 
 export function stop() {
   log.info('Stopping WattManager');
+  mqtt.client.end();
   isRunning = false;
 }
 
