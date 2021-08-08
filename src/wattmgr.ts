@@ -3,10 +3,10 @@ import * as mqtt from './mqttclient';
 import * as ENV from './ENV';
 import Output from './output';
 
-let availablePower: number = 0;
+let availablePower: number = 0.0;
 let outputs: Output[] = [];
-const outputPower = () => outputs.reduce((t, o) => (t += o.currPower), 0);
-let maxOutputPower: number = 0;
+const outputPower = () => outputs.reduce((t, o) => (t += o.currPower), 0.0);
+let maxOutputPower: number = 0.0;
 
 const log = logger.child({ module: 'wattmgr' });
 let isRunning = true;

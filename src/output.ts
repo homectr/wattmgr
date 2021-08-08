@@ -30,7 +30,7 @@ export default class Output extends EventEmitter {
     this.id = id;
     this.priority = priority;
     this.maxPower = maxPower;
-    this.currPower = 0;
+    this.currPower = 0.0;
     this.pwmDC = 0;
     this.isOpen = false;
     this.isPwm = (isPwm ?? false) || pwmPoints !== null;
@@ -51,7 +51,7 @@ export default class Output extends EventEmitter {
   public close() {
     if (!this.isOpen) return;
     this.isOpen = false;
-    this.currPower = 0;
+    this.currPower = 0.0;
     this.pwmDC = 0;
     this.emit('dc', 0);
     this.emit('off');
