@@ -40,6 +40,7 @@ export default class Output extends EventEmitter {
   }
 
   public open() {
+    if (this.isOpen) return;
     this.isOpen = true;
     this.currPower = this.maxPower;
     this.pwmDC = 100;
@@ -48,6 +49,7 @@ export default class Output extends EventEmitter {
   }
 
   public close() {
+    if (!this.isOpen) return;
     this.isOpen = false;
     this.currPower = 0;
     this.pwmDC = 0;
@@ -56,12 +58,14 @@ export default class Output extends EventEmitter {
   }
 
   public disable() {
+    if (!this.isEnabled) return;
     this.isEnabled = false;
     this.close();
     this.emit('disable');
   }
 
   public enable() {
+    if (this.isEnabled) return;
     this.isEnabled = true;
     this.emit('enable');
   }
