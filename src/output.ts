@@ -110,7 +110,7 @@ export default class Output extends EventEmitter {
   public setPower(pwr: number): number {
     if (!this.isEnabled) return 0;
 
-    if (pwr <= 0 || (!this.isPwm && pwr <= this.maxPower)) {
+    if (pwr <= 0 || (!this.isPwm && pwr < this.maxPower)) {
       this.close();
       return 0;
     }
