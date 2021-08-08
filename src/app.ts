@@ -65,6 +65,6 @@ wm.addOutput(
     ],
   })
 );
-wm.addOutput(new Output({ id: '2', priority: 1, maxPower: 1.0 }));
-wm.addOutput(new Output({ id: '3', priority: 4, maxPower: 1.5 }));
+// wm.addOutput(new Output({ id: '2', priority: 1, maxPower: 1.0 }));
+// wm.addOutput(new Output({ id: '3', priority: 4, maxPower: 1.5 }));
 start();
