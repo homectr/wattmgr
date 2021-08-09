@@ -52,8 +52,8 @@ export function addOutput(o: Output) {
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
   o.on('open', () => mqtt.client.publish(`${otopic}`, 'on'));
   o.on('close', () => mqtt.client.publish(`${otopic}`, 'off'));
-  o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'false'));
-  o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'true'));
+  o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'off'));
+  o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on'));
   o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString()));
 
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));

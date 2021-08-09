@@ -196,11 +196,11 @@ export default class Output extends EventEmitter {
       }
     }
     if (cmd == 'enabled') {
-      if (value == 'false') {
+      if (value == 'off') {
         this.disable();
         h = true;
       }
-      if (value == 'true') {
+      if (value == 'on') {
         this.enable();
         h = true;
       }
