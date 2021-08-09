@@ -4,10 +4,10 @@ import logger from './logger';
 
 const log = logger.child({ module: 'mqttc' });
 
-export const client = mqtt.connect(ENV.MQTT_HOST_URL, {
-  clientId: ENV.MQTT_CLIENT_ID,
-  username: ENV.MQTT_USERNAME,
-  password: ENV.MQTT_PASSWORD,
+export const client = mqtt.connect(ENV.config.mqtt?.host, {
+  clientId: ENV.config.mqtt?.clientid,
+  username: ENV.config.mqtt?.username,
+  password: ENV.config.mqtt?.password,
 });
 
 export type mgs_handler_t = (message: string) => boolean;

@@ -20,12 +20,12 @@ export default class Output extends EventEmitter {
   constructor(props: {
     id: string;
     priority: number;
-    maxPower: number;
+    power: number;
     isPwm?: boolean;
     pwmPoints?: [number, number][];
   }) {
     super();
-    const { id, priority, maxPower, isPwm, pwmPoints } = props;
+    const { id, priority, power: maxPower, isPwm, pwmPoints } = props;
 
     this.id = id;
     this.priority = priority;

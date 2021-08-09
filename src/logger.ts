@@ -1,35 +1,31 @@
 import winston from 'winston';
 import { format } from 'logform';
 
+import { argv } from './ENV';
+
 const fmt = format.combine(
   format.timestamp(),
   format.printf((info) => `${info.timestamp} [${info.level}] (${info.module}) ${info.message}`)
 );
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: fmt,
-  transports: [
-    //
-    // - Write all logs with level `error` and below to `error.log`
-    // - Write all logs with level `info` and below to `combined.log`
-    //
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
-  ],
-});
+export function createLogger(
+  level: string,
+  logName: string,
+  opts?: { errorlog?: string; consolelog?: boolean }
+): winston.Logger {
+  const { errorlog, consolelog } = opts ?? {};
+  const tr: winston.transport[] = [new winston.transports.File({ filename: logName })];
 
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.simple(),
-      level: 'debug',
-    })
-  );
+  if (errorlog) tr.push(new winston.transports.File({ filename: errorlog, level: 'error' }));
+  if (consolelog) tr.push(new winston.transports.Console({ format: fmt, level: 'debug' }));
+
+  const logger = winston.createLogger({ level: level, format: fmt, transports: tr });
+
+  return logger;
 }
+
+const logger = createLogger(argv.verbose, argv.logfile, {
+  consolelog: (argv.console ?? false) === true,
+});
 
 export default logger;

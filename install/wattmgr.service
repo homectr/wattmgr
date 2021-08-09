@@ -3,8 +3,8 @@ Description=NH8 Home Manager
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/nh8homemgr
-ExecStart=/usr/bin/python3 /opt/nh8homemgr/main.py -c /etc/nh8homemgr.cfg -l /var/log/nh8homemgr.log
+WorkingDirectory=/opt/wattmgr
+ExecStart=/usr/bin/node /opt/nh8homemgr/main.py -c /etc/nh8homemgr.cfg -l /var/log/nh8homemgr.log
 Environment=PYTHONUNBUFFERED=1
 
 [Install]

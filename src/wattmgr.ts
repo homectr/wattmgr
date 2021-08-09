@@ -12,7 +12,7 @@ const log = logger.child({ module: 'wattmgr' });
 let isRunning = true;
 
 mqtt.client.on('connect', function () {
-  mqtt.addHandler(ENV.MQTT_TOPIC_AVAILABLE_POWER, function (message): boolean {
+  mqtt.addHandler(ENV.config.mqtt?.powerTopic ?? 'power', function (message): boolean {
     let n = parseFloat(message);
     if (n !== NaN) {
       availablePower = n;
@@ -40,25 +40,21 @@ export function stop() {
 export function addOutput(o: Output) {
   outputs = [...outputs, o].sort((a, b) => (a.priority < b.priority ? -1 : 1));
   maxOutputPower += o.maxPower;
-  o.on('on', () => mqtt.client.publish(`${ENV.MQTT_CLIENT_ID}/output/${o.id}`, 'on'));
-  o.on('off', () => mqtt.client.publish(`${ENV.MQTT_CLIENT_ID}/output/${o.id}`, 'off'));
-  o.on('disable', () => mqtt.client.publish(`${ENV.MQTT_CLIENT_ID}/output/${o.id}/disable`, 'on'));
-  o.on('enable', () => mqtt.client.publish(`${ENV.MQTT_CLIENT_ID}/output/${o.id}/disable`, 'off'));
-  o.on('dc', (dc: number) =>
-    mqtt.client.publish(`${ENV.MQTT_CLIENT_ID}/output/${o.id}/dc`, dc.toString())
-  );
+  const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
+  o.on('on', () => mqtt.client.publish(`${otopic}`, 'on'));
+  o.on('off', () => mqtt.client.publish(`${otopic}`, 'off'));
+  o.on('disable', () => mqtt.client.publish(`${otopic}/disable`, 'on'));
+  o.on('enable', () => mqtt.client.publish(`${otopic}/disable`, 'off'));
+  o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString()));
 
-  mqtt.addHandler(`${ENV.MQTT_CLIENT_ID}/output/${o.id}/set`, (msg) =>
-    o.processCmd('toggle', msg.toLowerCase())
-  );
+  mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));
 
-  mqtt.addHandler(`${ENV.MQTT_CLIENT_ID}/output/${o.id}/disable/set`, (msg) =>
-    o.processCmd('disable', msg.toLowerCase())
-  );
+  mqtt.addHandler(`${otopic}/disable/set`, (msg) => o.processCmd('disable', msg.toLowerCase()));
 }
 
 function powerChanged() {
   log.debug(`Power changed`);
+  const otopic = `${ENV.config.mqtt?.clientid}/output`;
 
   if (availablePower == 0) return;
 
@@ -72,6 +68,7 @@ function powerChanged() {
     log.debug(`  o=${o.id} ena=${o.isEnabled} pwr=${o.getPower()} remains=${op}`);
     i++;
   }
+  mqtt.client.publish(otopic, outputPower().toString());
 }
 
 function loop() {
