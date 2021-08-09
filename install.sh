@@ -31,18 +31,35 @@ check_installed
 echo "Installing required packages"
 npm install
 
+echo "Building app"
+npm run build
+
+if [ -f "/etc/${svcname}.cfg" ]; then
+echo "Keeping existing configuration file /etc/${svcname}.cfg"
+else
 echo "Copying default configuration to /etc"
 sudo cp ./examples/${svcname}.cfg.example /etc/${svcname}.cfg
+fi
 
-echo "Creating log file and configuring logrotate"
+echo "Creating log file"
 sudo touch /var/log/${svcname}.log
+
+if [ -f "/etc/logrotate.d/${svcname}" ]; then
+echo "Keeping existing logrotate configuration /etc/logrotate.d/${svcname}"
+else
+echo "Configuring logrotate"
 sudo cp ./examples/${svcname}.logrotate /etc/logrotate.d/${svcname}
 sudo systemctl restart logrotate
+fi
 
+if [ -f /etc/systemd/system/${svcname} ]; then
+echo "Keeping existing service configuration /etc/systemd/system/${svcname}"
+else
 echo "Creating service"
 sudo cp ./examples/${svcname}.service /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable ${svcname}.service
+fi
 
 echo "Starting service"
 sudo systemctl start ${svcname}.service
