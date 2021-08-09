@@ -14,3 +14,11 @@ Each output has following properties
 * `power` - maximum power (in kW) consumed by device controlled by an output
 * `dcEnabled` - optional property - if set to `true`, output's will be managed by duty-cycle 0% = 0 kw, 100% = power specified in `power` property. Duty-cycle is linear unless property `dcfn` is provided. Duty cycle is published in topic {wm_mqtt_client_id}/output/{output_id}/dc
 * `dcfn` - duty-cycle function - actually array of function data points `[[dc1,pwr1],[dc2,pwr2],...[dcN,pwrN]]`
+
+## Installation
+1. clone this repository
+3. open cloned repo folder
+4. run install `bash ./install.sh`
+5. modify configuration according to your needs `sudo nano /etc/wattmgr.cfg`
+6. restart service in order to use new configuration `sudo systemctl restart wattmgr.service`
+7. check if everything is fine in the log file `sudo less /var/log/wattmgr.log`
