@@ -52,6 +52,8 @@ export function addOutput(o: Output) {
   mqtt.addHandler(`${otopic}/disable/set`, (msg) => o.processCmd('disable', msg.toLowerCase()));
 }
 
+let lastReport = 0;
+const reportInterval = 1000 * 50 * 1;
 function powerChanged() {
   log.debug(`Power changed`);
   const otopic = `${ENV.config.mqtt?.clientid}/output`;
@@ -68,9 +70,21 @@ function powerChanged() {
     log.debug(`  o=${o.id} ena=${o.isEnabled} pwr=${o.getPower()} remains=${op}`);
     i++;
   }
-  mqtt.client.publish(otopic, outputPower().toString());
+
+  op = outputPower();
+  mqtt.client.publish(otopic, op.toString());
+  if (Date.now() - lastReport > reportInterval) {
+    log.info(`Output power ${op.toString()}kW`);
+    lastReport = Date.now();
+  }
 }
 
+let lastAlive = 0;
+const aliveInterval = 1000 * 60 * 15;
 function loop() {
+  if (Date.now() - lastAlive > aliveInterval) {
+    log.info('Wattmgr alive');
+    lastAlive = Date.now();
+  }
   if (isRunning) setTimeout(loop, 5000);
 }
