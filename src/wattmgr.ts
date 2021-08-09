@@ -2,9 +2,7 @@ import logger from './logger';
 import * as mqtt from './mqttclient';
 import * as ENV from './ENV';
 import Output from './output';
-import { updateStrings } from 'yargs';
 
-let availablePower: number = 0.0;
 let outputs: Output[] = [];
 const outputPower = () => outputs.reduce((t, o) => (t += o.currPower), 0.0);
 let maxOutputPower: number = 0.0;
@@ -13,14 +11,14 @@ const log = logger.child({ module: 'wattmgr' });
 let isRunning = true;
 
 mqtt.client.on('connect', function () {
-  mqtt.addHandler(ENV.config.mqtt?.powerTopic ?? 'power', function (message): boolean {
+  const topic = ENV.config.mqtt?.powerTopic ?? `${ENV.config.mqtt?.clientid ?? ''}/power`;
+  log.info(`Subscribing to power_available topic=${topic}`);
+  mqtt.addHandler(topic, function (message): boolean {
     let n = parseFloat(message);
     if (n !== NaN) {
-      availablePower = n;
-      log.debug(`available power = ${availablePower}`);
+      log.debug(`Received available power = ${n.toFixed(2)}`);
+      handleAvailablePower(n);
     }
-
-    powerChanged();
     return true;
   });
 });
@@ -64,7 +62,8 @@ export function addOutput(o: Output) {
 
 let lastReport = 0;
 const reportInterval = 1000 * 50 * 1;
-function powerChanged() {
+
+function handleAvailablePower(availablePower: number) {
   log.debug(`Power changed`);
   const otopic = `${ENV.config.mqtt?.clientid}/output`;
 
@@ -86,7 +85,7 @@ function powerChanged() {
   }
 
   op = outputPower();
-  mqtt.client.publish(otopic, op.toString());
+  mqtt.client.publish(otopic, op.toFixed(2));
   if (Date.now() - lastReport > reportInterval) {
     log.info(`Available power=${availablePower.toFixed(2)} kW, outputs=${op.toFixed(2)} kW`);
     lastReport = Date.now();
@@ -95,6 +94,7 @@ function powerChanged() {
 
 let lastAlive = 0;
 const aliveInterval = 1000 * 60 * 15;
+
 function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
     log.info('Wattmgr alive');
