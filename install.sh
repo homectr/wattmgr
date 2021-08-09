@@ -52,7 +52,7 @@ sudo cp ./examples/${svcname}.logrotate /etc/logrotate.d/${svcname}
 sudo systemctl restart logrotate
 fi
 
-if [ -f /etc/systemd/system/${svcname} ]; then
+if [ -f "/etc/systemd/system/${svcname}" ]; then
 echo "Keeping existing service configuration /etc/systemd/system/${svcname}"
 else
 echo "Creating service"
