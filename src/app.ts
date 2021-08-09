@@ -40,6 +40,7 @@ const aliveInterval = 1000 * 60 * 30;
 function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
     log.info('App alive');
+    console.log('Watt Manager app alive');
     lastAlive = Date.now();
   }
   if (isRunning) setTimeout(loop, 5000);
