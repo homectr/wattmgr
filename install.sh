@@ -32,15 +32,15 @@ echo "Installing required packages"
 npm install
 
 echo "Copying default configuration to /etc"
-sudo cp ./install/${svcname}.cfg.example /etc/${svcname}.cfg
+sudo cp ./examples/${svcname}.cfg.example /etc/${svcname}.cfg
 
 echo "Creating log file and configuring logrotate"
 sudo touch /var/log/${svcname}.log
-sudo cp ./${svcname}.logrotate /etc/logrotate.d/${svcname}
+sudo cp ./examples/${svcname}.logrotate /etc/logrotate.d/${svcname}
 sudo systemctl restart logrotate
 
 echo "Creating service"
-sudo cp ./${svcname}.service /etc/systemd/system
+sudo cp ./examples/${svcname}.service /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable ${svcname}.service
 
