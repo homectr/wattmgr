@@ -62,7 +62,7 @@ sudo systemctl enable ${svcname}.service
 fi
 
 echo "Starting service"
-sudo systemctl start ${svcname}.service
+sudo systemctl restart ${svcname}.service
 
 echo "Installation complete"
 echo "Modify script configuration in /etc/${svcname}.cfg"
