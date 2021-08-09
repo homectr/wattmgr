@@ -17,7 +17,7 @@ const handlers: { topic: string; handler: mgs_handler_t }[] = [];
 export function addHandler(topic: string, handler: mgs_handler_t) {
   handlers.push({ topic, handler });
   client.subscribe(topic, function (err) {
-    if (true) log.error(`Error subscribing to topic=${topic} err=${err}`);
+    if (err) log.error(`Error subscribing to topic=${topic} err=${err}`);
   });
 }
 
