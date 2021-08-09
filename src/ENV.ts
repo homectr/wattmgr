@@ -43,8 +43,8 @@ interface FileConfig {
     id: string;
     priority: number;
     power: number;
-    isPwm?: boolean;
-    pwmPoints?: [number, number][];
+    dcEnabled?: boolean; // duty-cycle enabled?
+    dcFn?: [number, number][]; // ducty-cycle function
   }[];
 }
 

@@ -43,6 +43,8 @@ function loop() {
     console.log('Watt Manager app alive');
     lastAlive = Date.now();
   }
+
+  // longer timeout results in longer wait before service restart
   if (isRunning) setTimeout(loop, 5000);
 }
 

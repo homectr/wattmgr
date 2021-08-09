@@ -14,7 +14,7 @@
       "id": "output2",
       "power": 2.5,
       "priority": 2,
-      "isPwm": true
+      "dcEnabled": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import logger from './logger';
 import * as mqtt from './mqttclient';
 import * as ENV from './ENV';
 import Output from './output';
+import { updateStrings } from 'yargs';
 
 let availablePower: number = 0.0;
 let outputs: Output[] = [];
@@ -27,14 +28,24 @@ mqtt.client.on('connect', function () {
 export function start() {
   log.info('Starting WattManager');
   isRunning = true;
-  outputs.forEach((o) => o.emit('off'));
+  outputs.forEach((o) => {
+    o.enable();
+    o.close();
+  });
   loop();
 }
 
 export function stop() {
   log.info('Stopping WattManager');
-  mqtt.client.end();
-  isRunning = false;
+  outputs.forEach((o) => {
+    o.close();
+  });
+
+  // wait for outputs to close
+  setTimeout(() => {
+    mqtt.client.end();
+    isRunning = false;
+  }, 1000);
 }
 
 export function addOutput(o: Output) {
@@ -43,13 +54,12 @@ export function addOutput(o: Output) {
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
   o.on('on', () => mqtt.client.publish(`${otopic}`, 'on'));
   o.on('off', () => mqtt.client.publish(`${otopic}`, 'off'));
-  o.on('disable', () => mqtt.client.publish(`${otopic}/disable`, 'on'));
-  o.on('enable', () => mqtt.client.publish(`${otopic}/disable`, 'off'));
+  o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'false'));
+  o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'true'));
   o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString()));
 
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));
-
-  mqtt.addHandler(`${otopic}/disable/set`, (msg) => o.processCmd('disable', msg.toLowerCase()));
+  mqtt.addHandler(`${otopic}/enabled/set`, (msg) => o.processCmd('enabled', msg.toLowerCase()));
 }
 
 let lastReport = 0;
@@ -86,5 +96,7 @@ function loop() {
     log.info('Wattmgr alive');
     lastAlive = Date.now();
   }
+
+  // longer timeout results in longer wait before service restart
   if (isRunning) setTimeout(loop, 5000);
 }
