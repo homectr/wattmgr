@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import 'dotenv/config';
+//import 'dotenv/config';
 
 import logger from './logger';
-
 import * as wm from './wattmgr';
 import Output from './output';
 
@@ -36,10 +35,20 @@ process.once('SIGTERM', function (code) {
   stop();
 });
 
+let lastAlive = 0;
+const aliveInterval = 1000 * 60 * 30;
 function loop() {
-  if (isRunning) setTimeout(loop, 10000);
+  if (Date.now() - lastAlive > aliveInterval) {
+    log.info('App alive');
+    lastAlive = Date.now();
+  }
+  if (isRunning) setTimeout(loop, 5000);
 }
 
-config.outputs?.forEach((o) => wm.addOutput(new Output(o)));
+log.info('Creating outputs');
+config.outputs?.forEach((o) => {
+  log.info(` id=${o.id} prio=${o.priority} power=${o.power}`);
+  wm.addOutput(new Output(o));
+});
 
 start();
