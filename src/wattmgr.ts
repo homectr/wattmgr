@@ -17,7 +17,7 @@ mqtt.client.on('connect', function () {
     let n = parseFloat(message);
     if (n !== NaN) {
       availablePower = n;
-      log.debug(`avail ${availablePower}`);
+      log.debug(`available power = ${availablePower}`);
     }
 
     powerChanged();
@@ -52,8 +52,8 @@ export function addOutput(o: Output) {
   outputs = [...outputs, o].sort((a, b) => (a.priority < b.priority ? -1 : 1));
   maxOutputPower += o.maxPower;
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
-  o.on('on', () => mqtt.client.publish(`${otopic}`, 'on'));
-  o.on('off', () => mqtt.client.publish(`${otopic}`, 'off'));
+  o.on('open', () => mqtt.client.publish(`${otopic}`, 'on'));
+  o.on('close', () => mqtt.client.publish(`${otopic}`, 'off'));
   o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'false'));
   o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'true'));
   o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString()));
@@ -77,14 +77,18 @@ function powerChanged() {
   while (i < outputs.length) {
     let o = outputs[i];
     op = op - o.setPower(op);
-    log.debug(`  o=${o.id} ena=${o.isEnabled} pwr=${o.getPower()} remains=${op}`);
+    log.debug(
+      `>  o=${o.id} ena=${o.isEnabled} pwr=${o.getPower().toFixed(2)} dce=${
+        o.dcEnabled
+      } remains=${op.toFixed(2)}`
+    );
     i++;
   }
 
   op = outputPower();
   mqtt.client.publish(otopic, op.toString());
   if (Date.now() - lastReport > reportInterval) {
-    log.info(`Available power=${availablePower} kW, outputs=${op.toString()} kW`);
+    log.info(`Available power=${availablePower.toFixed(2)} kW, outputs=${op.toFixed(2)} kW`);
     lastReport = Date.now();
   }
 }

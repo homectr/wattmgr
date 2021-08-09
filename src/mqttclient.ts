@@ -27,7 +27,7 @@ client.on('connect', function () {
 
 client.on('message', function (topic, message) {
   // message is Buffer
-  log.debug(`MQTT message received= ${message.toString()}`);
+  log.debug(`MQTT received topic=${topic} msg=${message.toString()}`);
   let handled = false;
   let i = 0;
   while (!handled && i < handlers.length) {

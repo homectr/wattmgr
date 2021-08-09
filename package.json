@@ -2,7 +2,7 @@
   "name": "wattmgr",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "dev": "nodemon src/app.ts",
     "start": "node dist/app.js",

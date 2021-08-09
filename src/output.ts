@@ -11,7 +11,6 @@ export default class Output extends EventEmitter {
   dcIsLinear: boolean; // is duty cycle linear
   dcFn: [number, number][]; // duty-cycle function points [dc,power][]
   pwrDC: number; // pwm duty cycle
-  isOpen: boolean;
   dcEnabled: boolean; // management by duty cycle is enabled?
   isEnabled: boolean; // is output enabled?
   statsUpdatedAt: number; // when were stats udpdated
@@ -31,7 +30,6 @@ export default class Output extends EventEmitter {
     this.maxPower = maxPower;
     this.currPower = 0.0;
     this.pwrDC = 0;
-    this.isOpen = false;
     this.dcEnabled = (dcEnabled ?? false) || dcFn !== null;
     this.isEnabled = true;
     this.dcFn = dcFn ?? [];
@@ -41,21 +39,23 @@ export default class Output extends EventEmitter {
   }
 
   public open() {
-    if (this.isOpen) return;
-    this.isOpen = true;
+    this.emit('open');
+    log.debug(`Output opened o=${this.id}`);
+  }
+
+  public open100() {
+    if (this.currPower == 0) this.open();
     this.currPower = this.maxPower;
     this.pwrDC = 100;
-    this.emit('on');
-    this.emit('dc', 100);
   }
 
   public close() {
-    if (!this.isOpen) return;
-    this.isOpen = false;
-    this.currPower = 0.0;
+    if (this.currPower == 0) return;
+    this.currPower = 0;
     this.pwrDC = 0;
     this.emit('dc', 0);
-    this.emit('off');
+    this.emit('close');
+    log.debug(`Output closed o=${this.id}`);
   }
 
   public disable() {
@@ -63,16 +63,18 @@ export default class Output extends EventEmitter {
     this.isEnabled = false;
     this.close();
     this.emit('disable');
+    log.debug(`Output disabled o=${this.id}`);
   }
 
   public enable() {
     if (this.isEnabled) return;
     this.isEnabled = true;
     this.emit('enable');
+    log.debug(`Output enabled o=${this.id}`);
   }
 
-  public getPwmPointByDc(dc: number): [number, number] {
-    if (this.dcFn == null) throw 'No PWM points defined';
+  public getDcFnByDc(dc: number): [number, number] {
+    if (this.dcFn == null) throw 'No duty-cycle function defined';
 
     let pp = this.dcFn[0];
     let i = 0;
@@ -82,11 +84,13 @@ export default class Output extends EventEmitter {
     if (i < this.dcFn.length) pp = this.dcFn[i];
     else pp = this.dcFn[this.dcFn.length - 1];
 
+    log.debug(`DC2DCFN fn=${pp}`);
+
     return pp;
   }
 
-  public getPwmPointByPower(pwr: number): [number, number] {
-    if (this.dcFn == null) throw 'No PWM points defined';
+  public getDcFnByPower(pwr: number): [number, number] {
+    if (this.dcFn == null) throw 'No duty-cycle function defined';
     let pp = this.dcFn[0];
     let i = 0;
 
@@ -99,7 +103,7 @@ export default class Output extends EventEmitter {
 
     if (i > this.dcFn.length) pp = this.dcFn[this.dcFn.length - 1];
 
-    log.debug(`PWR2PP pwr=${pwr} pp=${pp}`);
+    log.debug(`PWR2DCFN pwr=${pwr} fn=${pp}`);
 
     return pp;
   }
@@ -109,32 +113,35 @@ export default class Output extends EventEmitter {
   }
 
   public setPower(pwr: number): number {
-    if (!this.isEnabled) return 0;
-
-    if (pwr <= 0 || (!this.dcEnabled && pwr < this.maxPower)) {
+    if (!this.isEnabled || pwr <= 0 || (!this.dcEnabled && pwr < this.maxPower)) {
       this.close();
       return 0;
     }
 
+    let dc = 0;
+
     if (pwr >= this.maxPower) {
-      this.open();
-      return this.maxPower;
-    }
-
-    if (this.dcIsLinear) {
-      this.pwrDC = Math.round((pwr * 100) / this.maxPower);
-      this.currPower = Math.round(pwr);
-      log.debug(`PWR->PP dc=${this.pwrDC} pwr=${this.currPower}`);
+      pwr = this.maxPower;
+      dc = 100;
     } else {
-      let dc = 0;
-      [dc, pwr] = this.getPwmPointByPower(pwr);
-      this.pwrDC = dc;
-      log.debug(`PWR->PP dc=${this.pwrDC} pwr=${pwr}`);
+      if (this.dcIsLinear) {
+        dc = Math.round((pwr * 100) / this.maxPower);
+        log.debug(`PWR->PP dc=${dc} pwr=${pwr}`);
+      } else {
+        [dc, pwr] = this.getDcFnByPower(pwr);
+        log.debug(`PWR->PP dc=${dc} pwr=${pwr}`);
+      }
     }
 
-    this.currPower = Math.round(pwr);
+    if (dc == 0) this.close();
+    else {
+      if (this.currPower == 0 && pwr > 0) this.open();
 
-    this.emit('dc', this.pwrDC);
+      this.currPower = pwr;
+      this.pwrDC = dc;
+
+      this.emit('dc', this.pwrDC);
+    }
 
     return this.currPower;
   }
@@ -142,25 +149,30 @@ export default class Output extends EventEmitter {
   public setDC(dc: number): number {
     if (!this.isEnabled) return 0;
 
+    let pwr = 0;
     if (dc <= 0) {
       this.close();
       return 0;
     } else if (dc >= 100 || !this.dcEnabled) {
-      this.open();
+      this.open100();
       return 100;
     }
 
     if (this.dcIsLinear) {
-      this.currPower = Math.round((this.maxPower * dc) / 100);
-      log.debug(`DC->PP dc=${dc} pwr=${this.currPower}`);
+      pwr = (this.maxPower * dc) / 100;
+      log.debug(`DC->PP dc=${dc} pwr=${pwr.toFixed(2)}`);
     } else {
-      let p = 0;
-      [dc, p] = this.getPwmPointByDc(dc);
-      this.currPower = p;
-      log.debug(`DC->PP dc=${dc} pwr=${p}`);
+      [dc, pwr] = this.getDcFnByDc(dc);
+      log.debug(`DC->PP dc=${dc} pwr=${pwr.toFixed(2)}`);
     }
 
-    this.pwrDC = dc;
+    if (dc == 0) this.close();
+    else {
+      if (this.currPower == 0) this.open();
+      this.pwrDC = dc;
+      this.currPower = pwr;
+    }
+
     this.emit('dc', this.pwrDC);
 
     return dc;
@@ -175,7 +187,7 @@ export default class Output extends EventEmitter {
     let h = false;
     if (cmd == 'toggle') {
       if (value == 'on') {
-        this.open();
+        this.open100();
         h = true;
       }
       if (value == 'off') {

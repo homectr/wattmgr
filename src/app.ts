@@ -50,7 +50,7 @@ function loop() {
 
 log.info('Creating outputs');
 config.outputs?.forEach((o) => {
-  log.info(` id=${o.id} prio=${o.priority} power=${o.power}`);
+  log.info(`>  id=${o.id} prio=${o.priority} power=${o.power}`);
   wm.addOutput(new Output(o));
 });
 
