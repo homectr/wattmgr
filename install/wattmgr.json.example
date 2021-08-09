@@ -1,0 +1,20 @@
+{
+  "mqtt": {
+    "clientid": "wattmgr",
+    "host": "tcp://my_mqtt_host.com",
+    "powerTopic": "power"
+  },
+  "outputs": [
+    {
+      "id": "output1",
+      "power": 1.5,
+      "priority": 1
+    },
+    {
+      "id": "output2",
+      "power": 2.5,
+      "priority": 2,
+      "isPwm": true
+    }
+  ]
+}
