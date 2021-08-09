@@ -40,7 +40,7 @@ export default class Output extends EventEmitter {
 
   public open() {
     this.emit('open');
-    log.debug(`Output opened o=${this.id}`);
+    log.info(`Output opened o=${this.id}`);
   }
 
   public open100() {
@@ -55,7 +55,7 @@ export default class Output extends EventEmitter {
     this.pwrDC = 0;
     this.emit('dc', 0);
     this.emit('close');
-    log.debug(`Output closed o=${this.id}`);
+    log.info(`Output closed o=${this.id}`);
   }
 
   public disable() {
@@ -63,14 +63,14 @@ export default class Output extends EventEmitter {
     this.isEnabled = false;
     this.close();
     this.emit('disable');
-    log.debug(`Output disabled o=${this.id}`);
+    log.info(`Output disabled o=${this.id}`);
   }
 
   public enable() {
     if (this.isEnabled) return;
     this.isEnabled = true;
     this.emit('enable');
-    log.debug(`Output enabled o=${this.id}`);
+    log.info(`Output enabled o=${this.id}`);
   }
 
   public getDcFnByDc(dc: number): [number, number] {
