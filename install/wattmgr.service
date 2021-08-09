@@ -1,11 +1,11 @@
 [Unit]
-Description=NH8 Home Manager
+Description=Watt Manager
 After=network.target
 
 [Service]
 WorkingDirectory=/opt/wattmgr
-ExecStart=/usr/bin/node /opt/nh8homemgr/main.py -c /etc/nh8homemgr.cfg -l /var/log/nh8homemgr.log
-Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/node /opt/wattmgr/dist/app.js -c /etc/wattmgr.cfg -l /var/log/wattmgr.log -v info
+Environment=NODE_ENV=production
 
 [Install]
 WantedBy=default.target
