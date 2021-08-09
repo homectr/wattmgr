@@ -74,7 +74,7 @@ function powerChanged() {
   op = outputPower();
   mqtt.client.publish(otopic, op.toString());
   if (Date.now() - lastReport > reportInterval) {
-    log.info(`Output power ${op.toString()}kW`);
+    log.info(`Available power=${availablePower} kW, outputs=${op.toString()} kW`);
     lastReport = Date.now();
   }
 }
