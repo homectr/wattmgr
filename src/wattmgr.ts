@@ -63,11 +63,20 @@ export function addOutput(o: Output) {
 let lastReport = 0;
 const reportInterval = 1000 * 50 * 1;
 
-function handleAvailablePower(availablePower: number) {
-  log.debug(`Power changed`);
-  const otopic = `${ENV.config.mqtt?.clientid}/output`;
+let lastOptimize = 0;
 
-  if (availablePower == 0) return;
+function handleAvailablePower(availablePower: number) {
+  log.debug(`Power changed ${availablePower.toFixed(2)}`);
+  const otopic = `${ENV.config.mqtt?.clientid}/output`;
+  const optimizeInterval = ENV.config.optimize.interval * 1000;
+
+  if (Date.now() - lastOptimize < optimizeInterval || availablePower == 0) {
+    log.debug(
+      `Not optimizing wait=${Date.now() - lastOptimize - optimizeInterval} pwr=${availablePower}`
+    );
+    return;
+  }
+  lastOptimize = Date.now();
 
   let op = outputPower();
   let i = 0;

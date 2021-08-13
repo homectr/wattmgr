@@ -32,14 +32,17 @@ export const argv = yargs
   .boolean('console').argv;
 
 interface FileConfig {
-  mqtt?: {
+  mqtt: {
     clientid: string;
     host: string;
     username?: string;
     password?: string;
     powerTopic: string;
   };
-  outputs?: {
+  optimize: {
+    interval: number;
+  };
+  outputs: {
     id: string;
     priority: number;
     power: number;
@@ -54,6 +57,9 @@ const defaultConfig: FileConfig = {
     host: 'tcp://localhost',
     powerTopic: 'wattmgr/available_power',
   },
+  optimize: {
+    interval: 15,
+  },
   outputs: [],
 };
 
@@ -61,7 +67,7 @@ export const config = readConfig(argv.config);
 
 export function readConfig(cfgFileName: string): FileConfig {
   const data = fs.readFileSync(cfgFileName, { encoding: 'utf8', flag: 'r' });
-  let cfg: FileConfig = {};
+  let cfg: FileConfig = defaultConfig;
   try {
     cfg = JSON.parse(data);
   } catch (err) {

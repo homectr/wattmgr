@@ -4,6 +4,9 @@
     "host": "tcp://my_mqtt_host.com",
     "powerTopic": "power"
   },
+  "optimize": {
+    "interval": 15
+  }
   "outputs": [
     {
       "id": "output1",
