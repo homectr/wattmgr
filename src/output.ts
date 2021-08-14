@@ -114,6 +114,7 @@ export default class Output extends EventEmitter {
 
   public setPower(pwr: number): number {
     if (!this.isEnabled || pwr <= 0 || (!this.dcEnabled && pwr < this.maxPower)) {
+      if (this.pwrDC != 0) log.info(`Output ${this.id}: dc=${this.pwrDC}->0`);
       this.close();
       return 0;
     }
@@ -138,6 +139,7 @@ export default class Output extends EventEmitter {
       if (this.currPower == 0 && pwr > 0) this.open();
 
       this.currPower = pwr;
+      if (this.pwrDC != dc) log.info(`Output ${this.id}: dc=${this.pwrDC}->${dc}`);
       this.pwrDC = dc;
 
       this.emit('dc', this.pwrDC);
@@ -151,9 +153,11 @@ export default class Output extends EventEmitter {
 
     let pwr = 0;
     if (dc <= 0) {
+      if (this.pwrDC != 0) log.info(`Output ${this.id}: dc=${this.pwrDC}->0`);
       this.close();
       return 0;
     } else if (dc >= 100 || !this.dcEnabled) {
+      if (this.pwrDC != 100) log.info(`Output ${this.id}: dc=${this.pwrDC}->100`);
       this.open100();
       return 100;
     }
@@ -165,6 +169,8 @@ export default class Output extends EventEmitter {
       [dc, pwr] = this.getDcFnByDc(dc);
       log.debug(`DC->PP dc=${dc} pwr=${pwr.toFixed(2)}`);
     }
+
+    if (this.pwrDC != dc) log.info(`Output ${this.id}: dc=${this.pwrDC}->${dc}`);
 
     if (dc == 0) this.close();
     else {
