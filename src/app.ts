@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-//import 'dotenv/config';
-
 import logger from './logger';
 import * as wm from './wattmgr';
 import Output from './output';
