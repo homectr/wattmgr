@@ -51,6 +51,7 @@ export default class Output extends EventEmitter {
   }
 
   public close() {
+    if (this.currPower == 0 && this.pwrDC == 0) return;
     this.currPower = 0;
     this.pwrDC = 0;
     this.emit('dc', 0);
