@@ -36,6 +36,7 @@ export default class Output extends EventEmitter {
     this.dcIsLinear = dcFn == null && this.dcEnabled;
 
     this.statsUpdatedAt = 0;
+    this.enable();
   }
 
   public open() {
@@ -50,16 +51,14 @@ export default class Output extends EventEmitter {
   }
 
   public close() {
-    if (this.currPower == 0) return;
     this.currPower = 0;
     this.pwrDC = 0;
     this.emit('dc', 0);
     this.emit('close');
-    log.info(`Output closed o=${this.id}`);
+    log.info(`Output closed o=${this.id} dc->0`);
   }
 
   public disable() {
-    if (!this.isEnabled) return;
     this.isEnabled = false;
     this.close();
     this.emit('disable');
@@ -67,7 +66,6 @@ export default class Output extends EventEmitter {
   }
 
   public enable() {
-    if (this.isEnabled) return;
     this.isEnabled = true;
     this.emit('enable');
     log.info(`Output enabled o=${this.id}`);
