@@ -14,6 +14,7 @@ function stop() {
   isRunning = false;
   wm.stop();
   process.exitCode = 0;
+  log.info('App stopped');
 }
 
 function start() {

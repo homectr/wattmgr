@@ -56,6 +56,7 @@ export function addOutput(o: Output) {
   o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 }));
   o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 }));
 
+  log.info(`Subscribing to ${otopic}/set and ${otopic}/enabled/set`);
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));
   mqtt.addHandler(`${otopic}/enabled/set`, (msg) => o.processCmd('enabled', msg.toLowerCase()));
 }
@@ -72,7 +73,7 @@ function handleAvailablePower(availablePower: number) {
 
   if (Date.now() - lastOptimize < optimizeInterval || availablePower == 0) {
     log.debug(
-      `Not optimizing wait=${Date.now() - lastOptimize - optimizeInterval} pwr=${availablePower}`
+      `Not optimizing wait=${optimizeInterval - (Date.now() - lastOptimize)} pwr=${availablePower}`
     );
     return;
   }
