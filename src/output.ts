@@ -61,9 +61,9 @@ export default class Output extends EventEmitter {
 
   public disable() {
     this.isEnabled = false;
-    this.close();
     this.emit('disable');
-    log.info(`Output disabled o=${this.id}`);
+    log.info(`Output disabled o=${this.id}. Closing...`);
+    this.close();
   }
 
   public enable() {
