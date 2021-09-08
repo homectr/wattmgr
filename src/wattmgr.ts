@@ -107,8 +107,12 @@ const aliveInterval = 1000 * 60 * 15;
 
 function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
-    log.info('Wattmgr alive');
     lastAlive = Date.now();
+    log.info('Wattmgr alive');
+    mqtt.client.publish(`${ENV.config.mqtt?.clientid}/alive`, new Date().toISOString(), {
+      qos: 1,
+      retain: true,
+    });
   }
 
   // longer timeout results in longer wait before service restart
