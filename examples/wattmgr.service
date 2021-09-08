@@ -6,6 +6,8 @@ After=network.target
 WorkingDirectory=/opt/wattmgr
 ExecStart=/usr/bin/node /opt/wattmgr/dist/app.js -c /etc/wattmgr.cfg -l /var/log/wattmgr.log -v info
 Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=default.target
