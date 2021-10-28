@@ -54,7 +54,7 @@ export function addOutput(o: Output) {
   o.on('close', () => mqtt.client.publish(`${otopic}`, 'off', { qos: 1 }));
   o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'off', { qos: 1 }));
   o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 }));
-  o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 }));
+  o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1}));
 
   log.info(`Subscribing to ${otopic}/set and ${otopic}/enabled/set`);
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));

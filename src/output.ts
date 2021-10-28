@@ -51,12 +51,11 @@ export default class Output extends EventEmitter {
   }
 
   public close() {
-    if (this.currPower == 0 && this.pwrDC == 0) return;
     this.currPower = 0;
     this.pwrDC = 0;
     this.emit('dc', 0);
     this.emit('close');
-    log.info(`Output closed o=${this.id} dc->0`);
+    log.info(`Output closed o=${this.id} dc=0`);
   }
 
   public disable() {
@@ -69,7 +68,8 @@ export default class Output extends EventEmitter {
   public enable() {
     this.isEnabled = true;
     this.emit('enable');
-    log.info(`Output enabled o=${this.id}`);
+    this.emit('dc', this.pwrDC);
+    log.info(`Output enabled o=${this.id} dc=${this.pwrDC}`);
   }
 
   public getDcFnByDc(dc: number): [number, number] {
