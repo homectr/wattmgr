@@ -6,7 +6,7 @@
   },
   "optimize": {
     "interval": 15
-  }
+  },
   "outputs": [
     {
       "id": "output1",
