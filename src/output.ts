@@ -15,6 +15,9 @@ export default class Output extends EventEmitter {
   isEnabled: boolean; // is output enabled?
   statsUpdatedAt: number; // when were stats udpdated
 
+  statusTopic?: string; // if set, status will be published to this topic in addition to the default
+  dcTopic?: string; // if set, DC value will be published to this topic in addition to the default
+
   constructor(props: {
     id: string;
     priority: number;

@@ -50,11 +50,20 @@ export function addOutput(o: Output) {
   outputs = [...outputs, o].sort((a, b) => (a.priority < b.priority ? -1 : 1));
   maxOutputPower += o.maxPower;
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
-  o.on('open', () => mqtt.client.publish(`${otopic}`, 'on', { qos: 1 }));
-  o.on('close', () => mqtt.client.publish(`${otopic}`, 'off', { qos: 1 }));
+  o.on('open', () => {
+    mqtt.client.publish(`${otopic}`, 'on', { qos: 1 });
+    o.statusTopic && mqtt.client.publish(`${o.statusTopic}`, 'on', { qos: 1 });
+  });
+  o.on('close', () => {
+    mqtt.client.publish(`${otopic}`, 'off', { qos: 1 });
+    o.statusTopic && mqtt.client.publish(`${o.statusTopic}`, 'off', { qos: 1 });
+  });
   o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'off', { qos: 1 }));
   o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 }));
-  o.on('dc', (dc: number) => mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1}));
+  o.on('dc', (dc: number) => {
+    mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 });
+    o.dcTopic ?? mqtt.client.publish(`${o.dcTopic}`, dc.toString(), { qos: 1 });
+  });
 
   log.info(`Subscribing to ${otopic}/set and ${otopic}/enabled/set`);
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));

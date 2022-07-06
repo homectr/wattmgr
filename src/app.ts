@@ -49,7 +49,11 @@ function loop() {
 
 log.info('Creating outputs');
 config.outputs?.forEach((o) => {
-  log.info(`>  id=${o.id} prio=${o.priority} power=${o.power}`);
+  log.info(
+    `>  id=${o.id} prio=${o.priority} power=${o.power} statusTopic=${
+      o.statusTopic ?? 'n/a'
+    } dcTopic=${o.dcTopic ?? 'n/a'}`
+  );
   wm.addOutput(new Output(o));
 });
 

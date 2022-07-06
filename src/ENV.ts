@@ -48,6 +48,8 @@ interface FileConfig {
     power: number;
     dcEnabled?: boolean; // duty-cycle enabled?
     dcFn?: [number, number][]; // ducty-cycle function
+    statusTopic?: string; // if set, status will be published to this topic in addition to the default
+    dcTopic?: string; // if set, DC value will be published to this topic in addition to the default
   }[];
 }
 
