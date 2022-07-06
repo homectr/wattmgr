@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "ts-node src/app.ts --config ./local/config.cfg --log ./local/wattmgr.log --console --verbose 5",
+    "start:dev": "ts-node src/app.ts --config ./local/config.cfg --logfile ./local/wattmgr.log --console --verbose 5",
     "start": "node dist/app.js",
     "build": "tsc -p ."
   },

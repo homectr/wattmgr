@@ -24,9 +24,11 @@ export default class Output extends EventEmitter {
     power: number;
     dcEnabled?: boolean;
     dcFn?: [number, number][];
+    statusTopic?: string;
+    dcTopic?: string;
   }) {
     super();
-    const { id, priority, power: maxPower, dcEnabled, dcFn } = props;
+    const { id, priority, power: maxPower, dcEnabled, dcFn, statusTopic, dcTopic } = props;
 
     this.id = id;
     this.priority = priority;
@@ -37,6 +39,8 @@ export default class Output extends EventEmitter {
     this.isEnabled = true;
     this.dcFn = dcFn ?? [];
     this.dcIsLinear = dcFn == null && this.dcEnabled;
+    this.statusTopic = statusTopic;
+    this.dcTopic = dcTopic;
 
     this.statsUpdatedAt = 0;
     this.enable();
