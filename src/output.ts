@@ -5,18 +5,24 @@ const log = logger.child({ module: 'output' });
 
 export default class Output extends EventEmitter {
   id: string;
+  /** priority - lower is higher */
   priority: number;
+  /** max output power */
   maxPower: number;
-  currPower: number; // current output power - can be 0-maxPower
-  dcIsLinear: boolean; // is duty cycle linear
-  dcFn: [number, number][]; // duty-cycle function points [dc,power][]
-  pwrDC: number; // pwm duty cycle
-  dcEnabled: boolean; // management by duty cycle is enabled?
-  isEnabled: boolean; // is output enabled?
-  statsUpdatedAt: number; // when were stats udpdated
-
-  statusTopic?: string; // if set, status will be published to this topic in addition to the default
-  dcTopic?: string; // if set, DC value will be published to this topic in addition to the default
+  /** current output power - can be 0-maxPower */
+  currPower: number; 
+  /** is duty cycle linear */
+  dcIsLinear: boolean; 
+  /** duty-cycle function points [dc,power][]*/
+  dcFn: [number, number][]; 
+  /** pwm duty cycle */
+  pwrDC: number;
+  /** duty-cycle enabled? */
+  dcEnabled: boolean; 
+  /** is output enabled? */
+  isEnabled: boolean; 
+  /** when were stats udpdated */
+  statsUpdatedAt: number; 
 
   constructor(props: {
     id: string;
@@ -28,7 +34,7 @@ export default class Output extends EventEmitter {
     dcTopic?: string;
   }) {
     super();
-    const { id, priority, power: maxPower, dcEnabled, dcFn, statusTopic, dcTopic } = props;
+    const { id, priority, power: maxPower, dcEnabled, dcFn } = props;
 
     this.id = id;
     this.priority = priority;
@@ -39,8 +45,6 @@ export default class Output extends EventEmitter {
     this.isEnabled = true;
     this.dcFn = dcFn ?? [];
     this.dcIsLinear = dcFn == null && this.dcEnabled;
-    this.statusTopic = statusTopic;
-    this.dcTopic = dcTopic;
 
     this.statsUpdatedAt = 0;
     this.enable();

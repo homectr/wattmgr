@@ -11,11 +11,11 @@ const log = logger.child({ module: 'wattmgr' });
 let isRunning = true;
 
 mqtt.client.on('connect', function () {
-  const topic = ENV.config.mqtt?.powerTopic ?? `${ENV.config.mqtt?.clientid ?? ''}/power`;
-  log.info(`Subscribing to power_available topic=${topic}`);
+  const topic = `${ENV.config.mqtt?.clientid ?? ''}/input`;
+  log.info(`Subscribing to available power topic=${topic}`);
   mqtt.addHandler(topic, function (message): boolean {
-    let n = parseFloat(message);
-    if (n !== NaN) {
+    let n = Number(message);
+    if (!Number.isNaN(n)) {
       log.debug(`Received available power = ${n.toFixed(2)}`);
       handleAvailablePower(n);
     }
@@ -52,26 +52,14 @@ export function addOutput(o: Output) {
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
   o.on('open', () => {
     mqtt.client.publish(`${otopic}`, 'on', { qos: 1 });
-    if (o.statusTopic) {
-      log.debug(`Publishing to ${o.statusTopic} on`);
-      mqtt.client.publish(`${o.statusTopic}`, 'on', { qos: 1 });
-    }
   });
   o.on('close', () => {
     mqtt.client.publish(`${otopic}`, 'off', { qos: 1 });
-    if (o.statusTopic) {
-      log.debug(`Publishing to ${o.statusTopic} off`);
-      mqtt.client.publish(`${o.statusTopic}`, 'off', { qos: 1 });
-    }
   });
   o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'off', { qos: 1 }));
   o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 }));
   o.on('dc', (dc: number) => {
     mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 });
-    if (o.dcTopic) {
-      log.debug(`Publishing to ${o.dcTopic} dc=${dc}`);
-      mqtt.client.publish(`${o.dcTopic}`, dc.toString(), { qos: 1 });
-    }
   });
 
   log.info(`Subscribing to ${otopic}/set and ${otopic}/enabled/set`);

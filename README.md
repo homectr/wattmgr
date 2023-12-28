@@ -4,7 +4,7 @@ WattManager is MQTT connected app, which tries to optimize available power consu
 
 ## How does it work
 
-WattMapager (WM) takes as input currently available power (from configured mqtt topic) and switches on, respectively off - if availale power is negative, configured power outputs with a goal to zero-out available power.
+WattMapager (WM) takes as input currently available power and switches on, respectively off - if availale power is negative, configured power outputs with a goal to zero-out available power.
 
 ## Power Outputs
 
@@ -22,12 +22,11 @@ Each output has following properties
 - `dcTopic` - mqtt topic to which output's duty-cycle value (0-100) will be published
 
 ## MQTT topics
-
+- `{client_id}/input` - current available power which WM tries to optimize
 - `{client_id}/output/{output_id}` - output status (ON/OFF)
 - `{client_id}/output/{output_id}/enabled` - output enabled/disabled status (ON/OFF)
 - `{client_id}/output/{output_id}/enabled/set` - command channel to enable/disable output (ON/OFF)
 - `{client_id}/output/{output_id}/dc` - output's duty-cycle value (0-100)
-  Each output can have additional `statusTopic` and `dcTopic` specified in configuration file. These can be used to directly manage other devices.
 
 ## Installation
 

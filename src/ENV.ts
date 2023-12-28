@@ -37,19 +37,20 @@ interface FileConfig {
     host: string;
     username?: string;
     password?: string;
-    powerTopic: string;
   };
   optimize: {
     interval: number;
   };
   outputs: {
     id: string;
+    /** priority - lower is higher */
     priority: number;
+    /** max output power */
     power: number;
-    dcEnabled?: boolean; // duty-cycle enabled?
-    dcFn?: [number, number][]; // ducty-cycle function
-    statusTopic?: string; // if set, status will be published to this topic in addition to the default
-    dcTopic?: string; // if set, DC value will be published to this topic in addition to the default
+    /** duty-cycle enabled? */
+    dcEnabled?: boolean; 
+    /** duty-cycle function points [dc,power][]*/
+    dcFn?: [number, number][]; 
   }[];
 }
 
@@ -57,7 +58,6 @@ const defaultConfig: FileConfig = {
   mqtt: {
     clientid: 'wattmgr',
     host: 'tcp://localhost',
-    powerTopic: 'wattmgr/available_power',
   },
   optimize: {
     interval: 15,
