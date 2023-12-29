@@ -51,14 +51,24 @@ export function addOutput(o: Output) {
   maxOutputPower += o.maxPower;
   const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
   o.on('open', () => {
+    log.debug(`Output opened o=${o.id}`);
     mqtt.client.publish(`${otopic}`, 'on', { qos: 1 });
+
   });
   o.on('close', () => {
+    log.debug(`Output closed o=${o.id}`);
     mqtt.client.publish(`${otopic}`, 'off', { qos: 1 });
   });
-  o.on('disable', () => mqtt.client.publish(`${otopic}/enabled`, 'off', { qos: 1 }));
-  o.on('enable', () => mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 }));
+  o.on('disable', () => {
+    log.debug(`Output disabled o=${o.id}`);
+    mqtt.client.publish(`${otopic}/enabled`, 'off', { qos: 1 })}
+    );
+  o.on('enable', () => {
+    log.debug(`Output enabled o=${o.id}`);
+    mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 })}
+    );
   o.on('dc', (dc: number) => {
+    log.debug(`Output dc changed o=${o.id} dc=${dc}`);
     mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 });
   });
 
