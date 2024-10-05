@@ -1,29 +1,35 @@
 {
   "name": "wattmgr",
-  "version": "1.0.0",
+  "version": "1.1",
+  "packageManager": "yarn@4.3.1",
+  "engines": {
+    "node": ">=20",
+    "yarn": ">=4"
+  },
   "description": "",
-  "main": "app.js",
+  "main": "main.js",
   "scripts": {
-    "start:dev": "ts-node src/app.ts --config ./local/config.cfg --logfile ./local/wattmgr.log --console --verbose 5",
-    "start": "node dist/app.js",
-    "build": "tsc -p ."
+    "start:dev": "node_modules/.bin/ts-node src/main.ts --config ./local/config.cfg --logfile ./local/wattmgr.log --console --verbose 5",
+    "start": "node dist/main.js",
+    "build": "node_modules/.bin/tsc -p .",
+    "dockerize": "docker build -t sovcik/wattmgr:latest ."
   },
   "keywords": [],
   "author": "Jozef Sovcik",
   "license": "MIT",
   "dependencies": {
-    "debug": "^4.3",
-    "mqtt": "^4.3",
-    "winston": "^3.8",
-    "yargs": "^17.5"
+    "debug": "^4.3.7",
+    "mqtt": "^5.10.1",
+    "winston": "^3.15.0",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@types/debug": "^4.1",
-    "@types/node": "^18",
-    "@types/ws": "^8.5",
-    "@types/yargs": "^17.0",
-    "nodemon": "^2.0",
-    "ts-node": "^10.8",
-    "typescript": "^4"
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20",
+    "@types/ws": "^8.5.12",
+    "@types/yargs": "^17.0.33",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
   }
 }

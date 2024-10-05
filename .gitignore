@@ -4,7 +4,4 @@ dist
 .env
 .vscode
 
-*.log
-*.cfg
-
 local

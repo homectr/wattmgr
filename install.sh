@@ -34,15 +34,17 @@ npm install
 echo "Building app"
 npm run build
 
-if [ -f "/etc/${svcname}.cfg" ]; then
-echo "Keeping existing configuration file /etc/${svcname}.cfg"
+if [ -f "/etc/${svcname}/${svcname}.cfg" ]; then
+echo "Keeping existing configuration file /etc/${svcname}/${svcname}.cfg"
 else
 echo "Copying default configuration to /etc"
-sudo cp ./examples/${svcname}.cfg.example /etc/${svcname}.cfg
+sudo mkdir -p /etc/${svcname}
+sudo cp ./examples/${svcname}.cfg /etc/${svcname}/${svcname}.cfg
 fi
 
 echo "Creating log file"
-sudo touch /var/log/${svcname}.log
+sudo mkdir -p /var/log/${svcname}
+sudo touch /var/log/${svcname}/${svcname}.log
 
 if [ -f "/etc/logrotate.d/${svcname}" ]; then
 echo "Keeping existing logrotate configuration /etc/logrotate.d/${svcname}"
@@ -67,6 +69,6 @@ echo "Starting service"
 sudo systemctl restart ${svcname}.service
 
 echo "Installation complete"
-echo "Modify script configuration in /etc/${svcname}.cfg"
+echo "Modify script configuration in /etc/${svcname}/${svcname}.cfg"
 echo "Restart script service using: sudo systemctl restart ${svcname}"
 echo "Check service status using: sudo systemctl status ${svcname}"
