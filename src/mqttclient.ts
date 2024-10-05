@@ -16,7 +16,7 @@ const options: mqtt.IClientOptions = {
   },
 };
 
-
+log.info(`Connecting to MQTT host ${ENV.config.mqtt?.host}: clientId=${options.clientId} username=${options?.username ?? 'none'} password=${options?.password ? 'yes' : 'no'}`);
 export const client = mqtt.connect(ENV.config.mqtt?.host, options);
 
 export type mgs_handler_t = (message: string) => boolean;
@@ -31,7 +31,7 @@ export function addHandler(topic: string, handler: mgs_handler_t) {
 }
 
 client.on('connect', function () {
-  log.debug('MQTT connected');
+  log.info('MQTT connected');
 });
 
 client.on('message', function (topic, message) {
