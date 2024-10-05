@@ -21,7 +21,6 @@ function start() {
   log.info('Starting app');
   isRunning = true;
   loop();
-  wm.start();
 }
 
 process.once('SIGINT', function (code) {

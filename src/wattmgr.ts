@@ -24,6 +24,7 @@ mqtt.client.on('connect', function () {
     }
     return true;
   });
+  start();
 });
 
 export function start() {
