@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { exit } from 'process';
 const yargs = require('yargs');
 
 export const DEBUG = 'mqttc';
@@ -68,12 +69,17 @@ const defaultConfig: FileConfig = {
 export const config = readConfig(argv.config);
 
 export function readConfig(cfgFileName: string): FileConfig {
-  const data = fs.readFileSync(cfgFileName, { encoding: 'utf8', flag: 'r' });
-  let cfg: FileConfig = defaultConfig;
+  let cfg: FileConfig = defaultConfig; 
+  if (!fs.existsSync(cfgFileName)) {
+    console.error(`Configuration file ${cfgFileName} not found. If you are running in a container, you may need to check the configuration file in mounted location.`);
+    exit(1);
+  }
   try {
+    const data = fs.readFileSync(cfgFileName, { encoding: 'utf8', flag: 'r' });
     cfg = JSON.parse(data);
   } catch (err) {
     console.error(`Error reading configuration from ${cfgFileName} err=${err}`);
+    exit(2);
   }
 
   return { ...defaultConfig, ...cfg };

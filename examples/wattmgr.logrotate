@@ -1,4 +1,4 @@
-/var/log/wattmgr.log {
+/var/log/wattmgr/wattmgr.log {
     size 5M
     rotate 3
     missingok
