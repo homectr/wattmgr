@@ -34,30 +34,33 @@ export const argv = yargs
 
 interface FileConfig {
   mqtt: {
-    clientid: string;
+    /** mqtt client id - default is 'wattmgr' */
+    client_id: string;
     host: string;
     username?: string;
     password?: string;
   };
   optimize: {
+    /** optimization interval in seconds */
     interval: number;
   };
   outputs: {
+    /** output id - output will be published in {client_id}/output/{id} topic*/
     id: string;
     /** priority - lower is higher */
     priority: number;
     /** max output power */
     power: number;
-    /** duty-cycle enabled? */
-    dcEnabled?: boolean; 
-    /** duty-cycle function points [dc,power][]*/
-    dcFn?: [number, number][]; 
+    /** PWM enabled? */
+    pwm_enabled?: boolean; 
+    /** PWM function points [dc,power][]*/
+    pwm_fn?: [number, number][]; 
   }[];
 }
 
 const defaultConfig: FileConfig = {
   mqtt: {
-    clientid: 'wattmgr',
+    client_id: 'wattmgr',
     host: 'tcp://localhost',
   },
   optimize: {

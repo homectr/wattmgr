@@ -11,7 +11,10 @@ const log = logger.child({ module: 'wattmgr' });
 let isRunning = true;
 
 mqtt.client.on('connect', function () {
-  const topic = `${ENV.config.mqtt?.clientid ?? ''}/input`;
+  log.info('MQTT connected.');
+  mqtt.client.publish(`${ENV.config.mqtt?.client_id ?? ''}/status`, 'ON', { qos: 1, retain: true });
+
+  const topic = `${ENV.config.mqtt?.client_id ?? ''}/input`;
   log.info(`Subscribing to available power topic=${topic}`);
   mqtt.addHandler(topic, function (message): boolean {
     let n = Number(message);
@@ -49,7 +52,7 @@ export function stop() {
 export function addOutput(o: Output) {
   outputs = [...outputs, o].sort((a, b) => (a.priority < b.priority ? -1 : 1));
   maxOutputPower += o.maxPower;
-  const otopic = `${ENV.config.mqtt?.clientid}/output/${o.id}`;
+  const otopic = `${ENV.config.mqtt?.client_id}/output/${o.id}`;
   o.on('open', () => {
     log.debug(`Output opened o=${o.id}`);
     mqtt.client.publish(`${otopic}`, 'on', { qos: 1 });
@@ -67,14 +70,14 @@ export function addOutput(o: Output) {
     log.debug(`Output enabled o=${o.id}`);
     mqtt.client.publish(`${otopic}/enabled`, 'on', { qos: 1 })}
     );
-  o.on('dc', (dc: number) => {
-    log.debug(`Output dc changed o=${o.id} dc=${dc}`);
-    mqtt.client.publish(`${otopic}/dc`, dc.toString(), { qos: 1 });
+  o.on('pwm', (pwm: number) => {
+    log.debug(`Output pwm changed o=${o.id} dc=${pwm}`);
+    mqtt.client.publish(`${otopic}/pwm`, pwm.toString(), { qos: 1 });
   });
 
-  log.info(`Subscribing to ${otopic}/set and ${otopic}/enabled/set`);
+  log.info(`Subscribing to ${otopic}/set and ${otopic}/status/set`);
   mqtt.addHandler(`${otopic}/set`, (msg) => o.processCmd('toggle', msg.toLowerCase()));
-  mqtt.addHandler(`${otopic}/enabled/set`, (msg) => o.processCmd('enabled', msg.toLowerCase()));
+  mqtt.addHandler(`${otopic}/status/set`, (msg) => o.processCmd('enabled', msg.toLowerCase()));
 }
 
 let lastReport = 0;
@@ -84,7 +87,7 @@ let lastOptimize = 0;
 
 function handleAvailablePower(availablePower: number) {
   log.debug(`Power changed ${availablePower.toFixed(2)}`);
-  const otopic = `${ENV.config.mqtt?.clientid}/output`;
+  const otopic = `${ENV.config.mqtt?.client_id}/output`;
   const optimizeInterval = ENV.config.optimize.interval * 1000;
 
   if (Date.now() - lastOptimize < optimizeInterval || availablePower == 0) {
@@ -125,7 +128,7 @@ function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
     lastAlive = Date.now();
     log.info('Wattmgr alive');
-    mqtt.client.publish(`${ENV.config.mqtt?.clientid}/alive`, new Date().toISOString(), {
+    mqtt.client.publish(`${ENV.config.mqtt?.client_id}/alive`, new Date().toISOString(), {
       qos: 1,
       retain: true,
     });

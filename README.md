@@ -1,32 +1,40 @@
 # Watt Manager
 
-WattManager is MQTT connected app, which tries to optimize available power consumption using pre-set power outputs ("devices").
+WattManager is MQTT connected app, which tries to optimize distribution of available power between configured power outputs.
+
+WattManager status is published to mqtt topic `{client_id}/status` as ON/OFF.
 
 ## How does it work
 
-WattMapager (WM) takes as input currently available power and switches on, respectively off - if availale power is negative, configured power outputs with a goal to zero-out available power.
+WattMapager (WM) reads available power from mqtt topic `{client_id}/input`) and switches on, respectively off - if availale power is negative, configured power outputs with a goal to zero-out available power.
 
 ## Power Outputs
 
-WM does not manage any phisical devices direcly. It switches on/off its virtual outputs.
+WM does not manage any physical devices direcly. It switches on/off its virtual outputs.
 Unlimited number of outputs can be configured.
 
 Each output has following properties
 
 - `id` - identifier
-- `priority` - outputs with higher priority will be turned on before those with lower priority, subject to available power
+- `priority` - outputs with higher priority will be turned on \
+    before those with lower priority, subject to available power
 - `power` - maximum power (in kW) consumed by device controlled by an output
-- `dcEnabled` - optional property - if set to `true`, output's will be managed by duty-cycle 0% = 0 kw, 100% = power specified in `power` property. Duty-cycle is linear unless property `dcfn` is provided. Duty cycle is published in topic {wm_mqtt_client_id}/output/{output_id}/dc
-- `dcfn` - duty-cycle function - actually array of function data points `[[dc1,pwr1],[dc2,pwr2],...[dcN,pwrN]]`
-- `statusTopic` - mqtt topic to which output status (ON/OFF) will be published
-- `dcTopic` - mqtt topic to which output's duty-cycle value (0-100) will be published
+- `pwm_enabled` - optional property - if set to `true`, output's will \
+    be managed by pulse-width-modulation 0% = 0 kw, 100% = power specified in `power` property. PWM is \
+    linear unless property `pwm_fn` is provided. PWM is published in topic {wm_mqtt_client_id}/output/{output_id}/pwm
+- `pwm_fn` - pulse-width-modulation function - array of function data points `[[pwm1,pwr1],[pwm2,pwr2],...[pwm3,pwrN]]`
+
 
 ## MQTT topics
 - `{client_id}/input` - current available power which WM tries to optimize
+- `{client_id}/status` - WM status (ON/OFF)
+- `{client_id}/alive` - last date-time when WM was alive
+
 - `{client_id}/output/{output_id}` - output status (ON/OFF)
 - `{client_id}/output/{output_id}/enabled` - output enabled/disabled status (ON/OFF)
 - `{client_id}/output/{output_id}/enabled/set` - command channel to enable/disable output (ON/OFF)
-- `{client_id}/output/{output_id}/dc` - output's duty-cycle value (0-100)
+- `{client_id}/output/{output_id}/pwm` - output's PWM value (0-100)
+- `{client_id}/output/{output_id}/pwm/set` - command channel to set output's PWM value (0-100)
 
 ## Installation
 
