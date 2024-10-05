@@ -3,11 +3,15 @@
 import logger from './logger';
 import * as wm from './wattmgr';
 import Output from './output';
+import * as mqtt from './mqttclient';
+import * as ENV from './ENV';
 
 import { config } from './ENV';
 
 const log = logger.child({ module: 'app' });
 let isRunning = true;
+
+log.info('=== Starting Watt Manager app ===');
 
 function stop() {
   log.info('Stopping app');
@@ -18,7 +22,6 @@ function stop() {
 }
 
 function start() {
-  log.info('Starting app');
   isRunning = true;
   loop();
 }
@@ -46,12 +49,17 @@ function loop() {
   if (isRunning) setTimeout(loop, 5000);
 }
 
-log.info('Creating outputs');
-config.outputs?.forEach((o) => {
-  log.info(
-    `>  id=${o.id} prio=${o.priority} power=${o.power}`
-  );
-  wm.addOutput(new Output(o));
+mqtt.client.on('connect', function () {
+  isRunning = true;
+  mqtt.client.publish(`${ENV.config.mqtt?.client_id ?? ''}/status`, 'ON', { qos: 1, retain: true });
+  log.info('Creating outputs');
+  config.outputs?.forEach((o) => {
+    log.info(
+      `>  id=${o.id} prio=${o.priority} power=${o.power}`
+    );
+    wm.addOutput(new Output(o));
+  });  
+  wm.start();
 });
 
 start();

@@ -8,12 +8,11 @@ const outputPower = () => outputs.reduce((t, o) => (t += o.currPower), 0.0);
 let maxOutputPower: number = 0.0;
 
 const log = logger.child({ module: 'wattmgr' });
-let isRunning = true;
+export let isRunning = false;
 
-mqtt.client.on('connect', function () {
-  log.info('MQTT connected.');
-  mqtt.client.publish(`${ENV.config.mqtt?.client_id ?? ''}/status`, 'ON', { qos: 1, retain: true });
-
+export function start() {
+  log.info('Starting WattManager');
+  
   const topic = `${ENV.config.mqtt?.client_id ?? ''}/input`;
   log.info(`Subscribing to available power topic=${topic}`);
   mqtt.addHandler(topic, function (message): boolean {
@@ -24,12 +23,9 @@ mqtt.client.on('connect', function () {
     }
     return true;
   });
-  start();
-});
 
-export function start() {
-  log.info('Starting WattManager');
   isRunning = true;
+
   outputs.forEach((o) => {
     o.enable();
     o.close();
