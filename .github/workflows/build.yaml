@@ -27,7 +27,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build apps
-        run: yarn build:all
+        run: yarn build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
