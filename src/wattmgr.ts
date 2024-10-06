@@ -120,7 +120,7 @@ function handleAvailablePower(availablePower: number) {
 }
 
 let lastAlive = 0;
-const aliveInterval = 1000 * 60 * 1;
+const aliveInterval = 1000 * 60 * 5;
 
 function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
