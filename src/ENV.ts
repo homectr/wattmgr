@@ -80,6 +80,8 @@ export function readConfig(cfgFileName: string): FileConfig {
   try {
     const data = fs.readFileSync(cfgFileName, { encoding: 'utf8', flag: 'r' });
     cfg = JSON.parse(data);
+    console.log('data', data);
+    console.log('cfg', cfg);
   } catch (err) {
     console.error(`Error reading configuration from ${cfgFileName} err=${err}`);
     exit(2);
