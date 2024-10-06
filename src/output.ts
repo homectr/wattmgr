@@ -27,6 +27,8 @@ export default class Output extends EventEmitter {
   pwmLevel: number;
   /** pwm enabled? */
   pwmEnabled: boolean;
+  /** is output open? */
+  isOpen: boolean;
   /** is output enabled? */
   isEnabled: boolean;
   /** when were stats udpdated */
@@ -43,6 +45,7 @@ export default class Output extends EventEmitter {
     this.pwmLevel = 0;
     this.pwmEnabled = (pwmEnabled ?? false) || pwmFn !== null;
     this.isEnabled = true;
+    this.isOpen = false;
     this.pwmFn = pwmFn ?? [];
     this.pwmIsLinear = pwmFn == null && this.pwmEnabled;
 
@@ -54,15 +57,20 @@ export default class Output extends EventEmitter {
    * Open output
    */
   public open() {
+    if (!this.isOpen) {
+      log.info(`Output opened o=${this.id}`);
+    }
+    this.isOpen = true;
     this.emit('open');
-    log.info(`Output opened o=${this.id}`);
   }
 
   /**
    * Open output and set it to 100%
    */
   public open100() {
-    if (this.currPower == 0) this.open();
+    if (!this.isOpen) {
+      this.open();
+    }
     this.currPower = this.maxPower;
     this.pwmLevel = 100;
   }
@@ -71,20 +79,25 @@ export default class Output extends EventEmitter {
    * Close output
    */
   public close() {
+    if (this.isOpen) {
+      log.info(`Output closed o=${this.id} pwm=0`);
+    }
+    this.isOpen = false;
     this.currPower = 0;
     this.pwmLevel = 0;
     this.emit('pwm', 0);
     this.emit('close');
-    log.info(`Output closed o=${this.id} pwm=0`);
   }
 
   /**
    * Disable output
    */
   public disable() {
+    if (!this.isEnabled) {
+      log.info(`Output disabled o=${this.id}. Closing...`);
+    }
     this.isEnabled = false;
     this.emit('disable');
-    log.info(`Output disabled o=${this.id}. Closing...`);
     this.close();
   }
 
@@ -92,14 +105,16 @@ export default class Output extends EventEmitter {
    * Enable output
    */
   public enable() {
+    if (!this.isEnabled) {
+      log.info(
+        `Output enabled o=${this.id} pwm=${this.pwmEnabled ? 'yes' : 'no'} pwmFn=${
+          this.pwmFn.length > 0 ? this.pwmFn.toString() : 'no'
+        }`
+      );
+    }
     this.isEnabled = true;
     this.emit('enable');
     this.emit('pwm', this.pwmLevel);
-    log.info(
-      `Output enabled o=${this.id} pwm=${this.pwmEnabled ? 'yes' : 'no'} pwmFn=${
-        this.pwmFn.length > 0 ? this.pwmFn.toString() : 'no'
-      }`
-    );
   }
 
   /**
