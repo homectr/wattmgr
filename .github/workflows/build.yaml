@@ -17,6 +17,9 @@ jobs:
         id: get_short_sha
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_OUTPUT
 
+      - name: Enable Corepack
+        run: corepack enable
+        
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
