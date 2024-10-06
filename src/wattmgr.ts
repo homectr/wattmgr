@@ -105,7 +105,7 @@ function handleAvailablePower(availablePower: number) {
     op = op - o.setPower(op);
     log.debug(
       `>  o=${o.id} ena=${o.isEnabled} pwr=${o.getPower().toFixed(2)} dce=${
-        o.dcEnabled
+        o.pwmEnabled
       } remains=${op.toFixed(2)}`
     );
     i++;
@@ -133,5 +133,5 @@ function loop() {
   }
 
   // longer timeout results in longer wait before service restart
-  if (isRunning) setTimeout(loop, 5000);
+  if (isRunning) setTimeout(loop, 1000);
 }

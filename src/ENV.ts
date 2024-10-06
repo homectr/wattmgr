@@ -53,7 +53,7 @@ interface FileConfig {
     power: number;
     /** PWM enabled? */
     pwm_enabled?: boolean; 
-    /** PWM function points [dc,power][]*/
+    /** PWM function points [pwm_level,power][]*/
     pwm_fn?: [number, number][]; 
   }[];
 }
