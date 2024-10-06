@@ -3,6 +3,14 @@ import logger from './logger';
 
 const log = logger.child({ module: 'output' });
 
+interface OutputProps {
+  id: string;
+  priority: number;
+  power: number;
+  pwm_enabled?: boolean;
+  pwm_fn?: [number, number][];
+}
+
 export default class Output extends EventEmitter {
   id: string;
   /** priority - lower is higher */
@@ -10,37 +18,29 @@ export default class Output extends EventEmitter {
   /** max output power */
   maxPower: number;
   /** current output power - can be 0-maxPower */
-  currPower: number; 
+  currPower: number;
   /** is duty cycle linear */
-  pwmIsLinear: boolean; 
-  /** duty-cycle function points [dc,power][]*/
-  pwmFn: [number, number][]; 
+  pwmIsLinear: boolean;
+  /** pwm function points [pwm,power][]*/
+  pwmFn: [number, number][];
   /** pwm duty cycle */
-  pwrPWM: number;
-  /** duty-cycle enabled? */
-  pwmEnabled: boolean; 
+  pwmLevel: number;
+  /** pwm enabled? */
+  pwmEnabled: boolean;
   /** is output enabled? */
-  isEnabled: boolean; 
+  isEnabled: boolean;
   /** when were stats udpdated */
-  statsUpdatedAt: number; 
+  statsUpdatedAt: number;
 
-  constructor(props: {
-    id: string;
-    priority: number;
-    power: number;
-    pwmEnabled?: boolean;
-    pwmFn?: [number, number][];
-    statusTopic?: string;
-    dcTopic?: string;
-  }) {
+  constructor(props: OutputProps) {
     super();
-    const { id, priority, power: maxPower, pwmEnabled, pwmFn } = props;
+    const { id, priority, power: maxPower, pwm_enabled: pwmEnabled, pwm_fn: pwmFn } = props;
 
     this.id = id;
     this.priority = priority;
     this.maxPower = maxPower;
     this.currPower = 0.0;
-    this.pwrPWM = 0;
+    this.pwmLevel = 0;
     this.pwmEnabled = (pwmEnabled ?? false) || pwmFn !== null;
     this.isEnabled = true;
     this.pwmFn = pwmFn ?? [];
@@ -50,25 +50,37 @@ export default class Output extends EventEmitter {
     this.enable();
   }
 
+  /**
+   * Open output
+   */
   public open() {
     this.emit('open');
     log.info(`Output opened o=${this.id}`);
   }
 
+  /**
+   * Open output and set it to 100%
+   */
   public open100() {
     if (this.currPower == 0) this.open();
     this.currPower = this.maxPower;
-    this.pwrPWM = 100;
+    this.pwmLevel = 100;
   }
 
+  /**
+   * Close output
+   */
   public close() {
     this.currPower = 0;
-    this.pwrPWM = 0;
+    this.pwmLevel = 0;
     this.emit('pwm', 0);
     this.emit('close');
     log.info(`Output closed o=${this.id} pwm=0`);
   }
 
+  /**
+   * Disable output
+   */
   public disable() {
     this.isEnabled = false;
     this.emit('disable');
@@ -76,13 +88,23 @@ export default class Output extends EventEmitter {
     this.close();
   }
 
+  /**
+   * Enable output
+   */
   public enable() {
     this.isEnabled = true;
     this.emit('enable');
-    this.emit('pwm', this.pwrPWM);
-    log.info(`Output enabled o=${this.id} pwm=${this.pwmEnabled?'yes':'no'} pwmFn=${this.pwmFn.length>0?this.pwmFn.toString():'no'}`);
+    this.emit('pwm', this.pwmLevel);
+    log.info(
+      `Output enabled o=${this.id} pwm=${this.pwmEnabled ? 'yes' : 'no'} pwmFn=${
+        this.pwmFn.length > 0 ? this.pwmFn.toString() : 'no'
+      }`
+    );
   }
 
+  /**
+   * Get closest pair [pwm,pwr] by providing pwm
+   */
   public getPwmFnByPwm(pwm: number): [number, number] {
     if (this.pwmFn == null) throw 'No pwm function defined';
 
@@ -102,6 +124,10 @@ export default class Output extends EventEmitter {
     return pp;
   }
 
+  /**
+   * Get closest lower [pwm,pwr] pair by providing power
+   * @param pwr - available power
+   */
   public getPwmFnByPower(pwr: number): [number, number] {
     if (this.pwmFn == null) throw 'No pwm function defined';
     let pp = this.pwmFn[0];
@@ -125,80 +151,97 @@ export default class Output extends EventEmitter {
     return this.currPower;
   }
 
+  /**
+   * Set output power and return actual power set
+   * @param availPwr power available
+   * @returns power used by output
+   */
   public setPower(pwr: number): number {
-    if (!this.isEnabled || pwr <= 0 || (!this.pwmEnabled && pwr < this.maxPower)) {
-      if (this.pwrPWM != 0) log.info(`Output ${this.id}: pwm=${this.pwrPWM}->0`);
+    let setPwr = pwr;
+    // if output is disabled or power is 0 or pwn is not enabled and power is less than maxPower
+    if (!this.isEnabled || setPwr <= 0 || (!this.pwmEnabled && setPwr < this.maxPower)) {
+      if (this.pwmLevel != 0) log.info(`Output ${this.id}: pwm=${this.pwmLevel}->0`);
       this.close();
       return 0;
     }
 
     let pwm = 0;
 
-    if (pwr >= this.maxPower) {
-      pwr = this.maxPower;
+    if (setPwr >= this.maxPower) {
+      setPwr = this.maxPower;
       pwm = 100;
     } else {
       if (this.pwmIsLinear) {
-        pwm = Math.round((pwr * 100) / this.maxPower);
-        log.debug(`PWR->PP pwm=${pwm} pwr=${pwr}`);
+        pwm = Math.round((setPwr * 100) / this.maxPower);
+        log.debug(`PWR->100% pwm=${pwm} pwr=${setPwr}`);
       } else {
-        [pwm, pwr] = this.getPwmFnByPower(pwr);
-        log.debug(`PWR->PP pwm=${pwm} pwr=${pwr}`);
+        [pwm, setPwr] = this.getPwmFnByPower(setPwr);
+        log.debug(`PWR->FN pwm=${pwm} pwr=${setPwr}`);
       }
     }
 
     if (pwm == 0) this.close();
     else {
-      if (this.currPower == 0 && pwr > 0) this.open();
+      if (this.currPower == 0 && setPwr > 0) this.open();
 
-      this.currPower = pwr;
-      if (this.pwrPWM != pwm) log.info(`Output ${this.id}: pwm=${this.pwrPWM}->${pwm}`);
-      this.pwrPWM = pwm;
+      this.currPower = setPwr;
+      if (this.pwmLevel != pwm) {
+        log.info(`Output ${this.id}: pwm=${this.pwmLevel}->${pwm}`);
+      }
+      this.pwmLevel = pwm;
 
-      this.emit('pwm', this.pwrPWM);
+      this.emit('pwm', this.pwmLevel);
     }
 
     return this.currPower;
   }
 
+  /**
+   * Set PWM level.
+   * This is mainly usefull for PWM outputs with power function defined as it set only valid PWM levels.
+   * */
   public setPWM(pwm: number): number {
     if (!this.isEnabled) return 0;
 
     let pwr = 0;
     if (pwm <= 0) {
-      if (this.pwrPWM != 0) log.info(`Output ${this.id}: dc=${this.pwrPWM}->0`);
+      if (this.pwmLevel != 0) {
+        log.info(`Output ${this.id}: dc=${this.pwmLevel}->0`);
+      }
       this.close();
       return 0;
     } else if (pwm >= 100 || !this.pwmEnabled) {
-      if (this.pwrPWM != 100) log.info(`Output ${this.id}: dc=${this.pwrPWM}->100`);
+      if (this.pwmLevel != 100) {
+        log.info(`Output ${this.id}: dc=${this.pwmLevel}->100`);
+      }
       this.open100();
       return 100;
     }
 
     if (this.pwmIsLinear) {
       pwr = (this.maxPower * pwm) / 100;
-      log.debug(`PWM->PP pwm=${pwm} pwr=${pwr.toFixed(2)}`);
+      log.debug(`PWM->100% pwm=${pwm} pwr=${pwr.toFixed(2)}`);
     } else {
       [pwm, pwr] = this.getPwmFnByPwm(pwm);
-      log.debug(`PWM->PP pwm=${pwm} pwr=${pwr.toFixed(2)}`);
+      log.debug(`PWM->FN pwm=${pwm} pwr=${pwr.toFixed(2)}`);
     }
 
-    if (this.pwrPWM != pwm) log.info(`Output ${this.id}: pwm=${this.pwrPWM}->${pwm}`);
+    if (this.pwmLevel != pwm) log.info(`Output ${this.id}: pwm=${this.pwmLevel}->${pwm}`);
 
     if (pwm == 0) this.close();
     else {
       if (this.currPower == 0) this.open();
-      this.pwrPWM = pwm;
+      this.pwmLevel = pwm;
       this.currPower = pwr;
     }
 
-    this.emit('pwm', this.pwrPWM);
+    this.emit('pwm', this.pwmLevel);
 
     return pwm;
   }
 
   public getPwm() {
-    return this.pwrPWM;
+    return this.pwmLevel;
   }
 
   public processCmd(cmd: string, value: string): boolean {

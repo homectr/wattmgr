@@ -52,9 +52,9 @@ interface FileConfig {
     /** max output power */
     power: number;
     /** PWM enabled? */
-    pwm_enabled?: boolean; 
+    pwm_enabled?: boolean;
     /** PWM function points [pwm_level,power][]*/
-    pwm_fn?: [number, number][]; 
+    pwm_fn?: [number, number][];
   }[];
 }
 
@@ -72,16 +72,16 @@ const defaultConfig: FileConfig = {
 export const config = readConfig(argv.config);
 
 export function readConfig(cfgFileName: string): FileConfig {
-  let cfg: FileConfig = defaultConfig; 
+  let cfg: FileConfig = defaultConfig;
   if (!fs.existsSync(cfgFileName)) {
-    console.error(`Configuration file ${cfgFileName} not found. If you are running in a container, you may need to check the configuration file in mounted location.`);
+    console.error(
+      `Configuration file ${cfgFileName} not found. If you are running in a container, you may need to check the configuration file in mounted location.`
+    );
     exit(1);
   }
   try {
     const data = fs.readFileSync(cfgFileName, { encoding: 'utf8', flag: 'r' });
     cfg = JSON.parse(data);
-    console.log('data', data);
-    console.log('cfg', cfg);
   } catch (err) {
     console.error(`Error reading configuration from ${cfgFileName} err=${err}`);
     exit(2);
