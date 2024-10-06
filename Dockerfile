@@ -6,6 +6,8 @@ RUN mkdir -p /app
 
 WORKDIR /app
 
+RUN corepack enable
+
 # copy project package files
 COPY package.json .
 COPY yarn.lock .

@@ -5,3 +5,5 @@ dist
 .vscode
 
 local
+
+.yarn/install-state.gz
