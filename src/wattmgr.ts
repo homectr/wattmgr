@@ -79,7 +79,7 @@ export function addOutput(o: Output) {
 }
 
 let lastReport = 0;
-const reportInterval = 1000 * 50 * 1;
+const reportInterval = 1000 * 60 * 1;
 
 let lastOptimize = 0;
 
@@ -120,7 +120,7 @@ function handleAvailablePower(availablePower: number) {
 }
 
 let lastAlive = 0;
-const aliveInterval = 1000 * 60 * 15;
+const aliveInterval = 1000 * 60 * 1;
 
 function loop() {
   if (Date.now() - lastAlive > aliveInterval) {
