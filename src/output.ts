@@ -7,6 +7,8 @@ interface OutputProps {
   id: string;
   priority: number;
   power: number;
+  disabled?: boolean;
+  min_runtime?: number;
   pwm_enabled?: boolean;
   pwm_fn?: [number, number][];
 }
@@ -19,6 +21,8 @@ export default class Output extends EventEmitter {
   maxPower: number;
   /** current output power - can be 0-maxPower */
   currPower: number;
+  /** minimum runtime in seconds, useful e.g. for motors to not cycle too fast */
+  minRuntime: number;
   /** is duty cycle linear */
   pwmIsLinear: boolean;
   /** pwm function points [pwm,power][]*/
@@ -31,22 +35,30 @@ export default class Output extends EventEmitter {
   isOpen: boolean;
   /** is output enabled? */
   isEnabled: boolean;
+  closingTimeout: NodeJS.Timeout | undefined;
 
   constructor(props: OutputProps) {
     super();
-    const { id, priority, power: maxPower, pwm_enabled: pwmEnabled, pwm_fn: pwmFn } = props;
 
-    this.id = id;
-    this.priority = priority;
-    this.maxPower = maxPower;
+    this.id = props.id;
+    this.priority = props.priority;
+    this.maxPower = props.power;
     this.currPower = 0.0;
     this.pwmLevel = 0;
-    this.pwmEnabled = (pwmEnabled ?? false) || pwmFn !== null;
-    this.isEnabled = true;
+    this.pwmEnabled = (props.pwm_enabled ?? false) || props.pwm_fn !== null;
+    this.isEnabled = props.disabled ? false : true;
     this.isOpen = false;
-    this.pwmFn = pwmFn ?? [];
-    this.pwmIsLinear = pwmFn == null && this.pwmEnabled;
+    this.pwmFn = props.pwm_fn ?? [];
+    this.pwmIsLinear = props.pwm_fn == null && this.pwmEnabled;
+    this.minRuntime = props.min_runtime ?? 0;
+    this.closingTimeout = undefined;
     this.enable();
+
+    log.info(
+      `>  id=${this.id} enabled=${this.isEnabled} prio=${this.priority} power=${
+        this.maxPower
+      } pwm=${this.pwmEnabled ? 'yes' : 'no'}`
+    );
   }
 
   /**
@@ -58,6 +70,7 @@ export default class Output extends EventEmitter {
     }
     this.isOpen = true;
     this.emit('open');
+    clearTimeout(this.closingTimeout);
   }
 
   /**
@@ -75,6 +88,19 @@ export default class Output extends EventEmitter {
    * Close output
    */
   public close() {
+    if (this.closingTimeout) {
+      return;
+    }
+    if (this.minRuntime > 0) {
+      this.closingTimeout = setTimeout(() => {
+        this._close();
+      }, this.minRuntime * 1000);
+    } else {
+      this._close();
+    }
+  }
+
+  private _close() {
     if (this.isOpen) {
       log.info(`Output closed o=${this.id} pwm=0`);
     }

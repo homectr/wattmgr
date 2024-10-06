@@ -54,11 +54,8 @@ mqtt.client.on('connect', function () {
   mqtt.client.publish(`${ENV.config.mqtt?.client_id ?? ''}/status`, 'ON', { qos: 1, retain: true });
   log.info('Creating outputs');
   config.outputs?.forEach((o) => {
-    log.info(
-      `>  id=${o.id} prio=${o.priority} power=${o.power}`
-    );
     wm.addOutput(new Output(o));
-  });  
+  });
   wm.start();
 });
 
