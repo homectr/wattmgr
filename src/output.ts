@@ -80,21 +80,24 @@ export default class Output extends EventEmitter {
     this.isEnabled = true;
     this.emit('enable');
     this.emit('pwm', this.pwrPWM);
-    log.info(`Output enabled o=${this.id} dc=${this.pwrPWM}`);
+    log.info(`Output enabled o=${this.id} pwm=${this.pwmEnabled?'yes':'no'} pwmFn=${this.pwmFn.length>0?this.pwmFn.toString():'no'}`);
   }
 
-  public getPwmFnByPwm(dc: number): [number, number] {
-    if (this.pwmFn == null) throw 'No duty-cycle function defined';
+  public getPwmFnByPwm(pwm: number): [number, number] {
+    if (this.pwmFn == null) throw 'No pwm function defined';
 
     let pp = this.pwmFn[0];
     let i = 0;
 
-    while (i < this.pwmFn.length && dc < this.pwmFn[i][0]) i++;
+    while (i < this.pwmFn.length && pwm < this.pwmFn[i][0]) i++;
 
-    if (i < this.pwmFn.length) pp = this.pwmFn[i];
-    else pp = this.pwmFn[this.pwmFn.length - 1];
+    if (i < this.pwmFn.length) {
+      pp = this.pwmFn[i];
+    } else {
+      pp = this.pwmFn[this.pwmFn.length - 1];
+    }
 
-    log.debug(`DC2DCFN fn=${pp}`);
+    log.debug(`PwmFnByPwm fn=${pp}`);
 
     return pp;
   }
@@ -113,7 +116,7 @@ export default class Output extends EventEmitter {
 
     if (i > this.pwmFn.length) pp = this.pwmFn[this.pwmFn.length - 1];
 
-    log.debug(`PWR2PWMFN pwr=${pwr} fn=${pp}`);
+    log.debug(`PwmFnByPwr pwr=${pwr} fn=${pp}`);
 
     return pp;
   }
@@ -174,10 +177,10 @@ export default class Output extends EventEmitter {
 
     if (this.pwmIsLinear) {
       pwr = (this.maxPower * pwm) / 100;
-      log.debug(`PWM->PP dc=${pwm} pwr=${pwr.toFixed(2)}`);
+      log.debug(`PWM->PP pwm=${pwm} pwr=${pwr.toFixed(2)}`);
     } else {
       [pwm, pwr] = this.getPwmFnByPwm(pwm);
-      log.debug(`PWM->PP dc=${pwm} pwr=${pwr.toFixed(2)}`);
+      log.debug(`PWM->PP pwm=${pwm} pwr=${pwr.toFixed(2)}`);
     }
 
     if (this.pwrPWM != pwm) log.info(`Output ${this.id}: pwm=${this.pwrPWM}->${pwm}`);
