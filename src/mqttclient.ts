@@ -1,13 +1,15 @@
 import mqtt from 'mqtt';
 import * as ENV from './ENV';
 import logger from './logger';
+import { WattManager } from './wattmgr';
 
 const log = logger.child({ module: 'mqttc' });
+const clientId = ENV.config.mqtt?.client_id ?? 'wattmgr';
 
-export const LWTtopic = `${ENV.config.mqtt?.client_id}/status`;
+export const LWTtopic = WattManager.ltwTopic(clientId);
 
 const options: mqtt.IClientOptions = {
-  clientId: ENV.config.mqtt?.client_id,
+  clientId: clientId,
   username: ENV.config.mqtt?.username,
   password: ENV.config.mqtt?.password,
   will: {
@@ -27,12 +29,19 @@ export const client = mqtt.connect(ENV.config.mqtt?.host, options);
 
 export type mgs_handler_t = (message: string) => boolean;
 
-const handlers: { topic: string; handler: mgs_handler_t }[] = [];
-
-export function addHandler(topic: string, handler: mgs_handler_t) {
-  handlers.push({ topic, handler });
-  client.subscribe(topic, function (err) {
+export const getErrorHandler = (topic: string) => {
+  return function (err: Error | null) {
     if (err) log.error(`Error subscribing to topic=${topic} err=${err}`);
+  };
+};
+
+export function subscribeWithHandler(topic: string, handlerFn: (msg: string) => void) {
+  client.subscribe(topic, getErrorHandler(topic));
+  client.on('message', (t, message) => {
+    if (t !== topic) return;
+    const msg = message.toString();
+    log.debug(`MQTT received topic=${topic} msg=${msg}`);
+    handlerFn(msg);
   });
 }
 
@@ -45,16 +54,8 @@ client.on('error', function (err) {
   log.error(`MQTT error: ${err}`);
 });
 
-client.on('message', function (topic, message) {
-  // message is Buffer
-  log.debug(`MQTT received topic=${topic} msg=${message.toString()}`);
-  let handled = false;
-  let i = 0;
-  while (!handled && i < handlers.length) {
-    if (handlers[i].topic === topic) handled = handlers[i].handler(message.toString());
-    i++;
-  }
-  if (!handled) log.warn(`Message not handled. topic=${topic} msg=${message.toString()}`);
+client.on('reconnect', function () {
+  log.info('MQTT reconnecting');
 });
 
 export default client;
