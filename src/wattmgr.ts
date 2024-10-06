@@ -38,6 +38,7 @@ export function stop() {
   outputs.forEach((o) => {
     o.close();
   });
+  mqtt.client.publish(mqtt.LWTtopic, 'OFF', { qos: 1, retain: true });
 
   // wait for outputs to close
   setTimeout(() => {
