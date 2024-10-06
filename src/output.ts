@@ -21,7 +21,7 @@ export default class Output extends EventEmitter {
   maxPower: number;
   /** current output power - can be 0-maxPower */
   currPower: number;
-  /** minimum runtime in seconds, useful e.g. for motors to not cycle too fast */
+  /** minimum runtime in miliseconds, useful e.g. for motors to not cycle too fast */
   minRuntime: number;
   /** is duty cycle linear */
   pwmIsLinear: boolean;
@@ -36,6 +36,7 @@ export default class Output extends EventEmitter {
   /** is output enabled? */
   isEnabled: boolean;
   closingTimeout: NodeJS.Timeout | undefined;
+  openedAt: number = 0;
 
   constructor(props: OutputProps) {
     super();
@@ -50,7 +51,7 @@ export default class Output extends EventEmitter {
     this.isOpen = false;
     this.pwmFn = props.pwm_fn ?? [];
     this.pwmIsLinear = props.pwm_fn == null && this.pwmEnabled;
-    this.minRuntime = props.min_runtime ?? 0;
+    this.minRuntime = (props.min_runtime ?? 0) * 1000;
     this.closingTimeout = undefined;
     this.enable();
 
@@ -71,6 +72,7 @@ export default class Output extends EventEmitter {
     this.isOpen = true;
     this.emit('open');
     clearTimeout(this.closingTimeout);
+    this.openedAt = Date.now();
   }
 
   /**
@@ -91,10 +93,10 @@ export default class Output extends EventEmitter {
     if (this.closingTimeout) {
       return;
     }
-    if (this.minRuntime > 0) {
+    if (this.minRuntime > 0 && Date.now() - this.openedAt < this.minRuntime) {
       this.closingTimeout = setTimeout(() => {
         this._close();
-      }, this.minRuntime * 1000);
+      }, this.minRuntime - (Date.now() - this.openedAt));
     } else {
       this._close();
     }

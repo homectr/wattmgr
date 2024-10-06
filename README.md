@@ -17,15 +17,17 @@ Each output has following properties
 
 - `id` - identifier
 - `priority` - outputs with higher priority will be turned on \
-    before those with lower priority, subject to available power
+   before those with lower priority, subject to available power
 - `power` - maximum power (in kW) consumed by device controlled by an output
 - `pwm_enabled` - optional property - if set to `true`, output's will \
-    be managed by pulse-width-modulation 0% = 0 kw, 100% = power specified in `power` property. PWM is \
-    linear unless property `pwm_fn` is provided. PWM is published in topic {wm_mqtt_client_id}/output/{output_id}/pwm
+   be managed by pulse-width-modulation 0% = 0 kw, 100% = power specified in `power` property. PWM is \
+   linear unless property `pwm_fn` is provided. PWM is published in topic {wm_mqtt_client_id}/output/{output_id}/pwm
 - `pwm_fn` - pulse-width-modulation function - array of function data points `[[pwm1,pwr1],[pwm2,pwr2],...[pwm3,pwrN]]`
-
+- `disabled` - optional property - if set to `true`, output will be disabled
+- `min_runtime` - optional property - minimum time in seconds for which output will be turned on
 
 ## MQTT topics
+
 - `{client_id}/input` - current available power which WM tries to optimize
 - `{client_id}/status` - WM status (ON/OFF)
 - `{client_id}/alive` - last date-time when WM was alive
