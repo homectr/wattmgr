@@ -1,12 +1,12 @@
 import mqtt from 'mqtt';
 import * as ENV from './ENV';
 import logger from './logger';
-import { WattManager } from './wattmgr';
+import { ltwTopic } from './wattmgr';
 
 const log = logger.child({ module: 'mqttc' });
 const clientId = ENV.config.mqtt?.client_id ?? 'wattmgr';
 
-export const LWTtopic = WattManager.ltwTopic(clientId);
+export const LWTtopic = ltwTopic(clientId);
 
 const options: mqtt.IClientOptions = {
   clientId: clientId,

@@ -19,6 +19,11 @@ export interface WattManagerProps {
    * */
   readInputFrom?: string;
 }
+
+export function ltwTopic(clientId: string) {
+  return `${clientId}/status`;
+}
+
 export class WattManager {
   clientId: string;
   outputs: Output[] = [];
@@ -33,6 +38,7 @@ export class WattManager {
   aliveInterval = 1000 * 60 * 5;
   topics: Record<'input' | 'output' | 'alive', () => string>;
   mqttClient: MqttClient;
+  /** optional topic to read input from  */
   readInputFrom?: string | null;
 
   constructor(props: WattManagerProps) {
@@ -48,10 +54,6 @@ export class WattManager {
     this.readInputFrom = props.readInputFrom;
   }
 
-  static ltwTopic(clientId: string) {
-    return `${clientId}/status`;
-  }
-
   /** Get total current output power of all outputs */
   public outputPower = () => this.outputs.reduce((t, o) => (t += o.currPower), 0.0);
 
@@ -59,7 +61,7 @@ export class WattManager {
     log.info('Starting WattManager');
 
     const topic = this.topics.input();
-    log.info(`Subscribing to available power topic=${topic}`);
+    log.info(`Subscribing to default input topic. topic=${topic}`);
     const thisObj = this;
     const powerHandler = function (message: string) {
       let n = Number(message);
@@ -70,6 +72,7 @@ export class WattManager {
     };
     subscribeWithHandler(topic, powerHandler);
     if (this.readInputFrom) {
+      log.info(`Subscribing to provided available power topic=${this.readInputFrom}`);
       subscribeWithHandler(this.readInputFrom, powerHandler);
     }
 
@@ -87,7 +90,7 @@ export class WattManager {
     this.outputs.forEach((o) => {
       o.close();
     });
-    this.mqttClient.publish(WattManager.ltwTopic(this.clientId), 'OFF', { qos: 1, retain: true });
+    this.mqttClient.publish(ltwTopic(this.clientId), 'OFF', { qos: 1, retain: true });
 
     // wait for outputs to close
     const thisObj = this;
@@ -100,7 +103,7 @@ export class WattManager {
   public addOutput(o: Output) {
     this.outputs = [...this.outputs, o].sort((a, b) => (a.priority < b.priority ? -1 : 1));
     this.maxOutputPower += o.maxPower;
-    const otopic = this.topics.output + '/' + o.id;
+    const otopic = this.topics.output() + '/' + o.id;
     o.on('open', () => {
       log.debug(`Output opened o=${o.id}`);
       this.mqttClient.publish(`${otopic}`, 'on', { qos: 1 });
