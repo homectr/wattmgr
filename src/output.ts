@@ -31,8 +31,6 @@ export default class Output extends EventEmitter {
   isOpen: boolean;
   /** is output enabled? */
   isEnabled: boolean;
-  /** when were stats udpdated */
-  statsUpdatedAt: number;
 
   constructor(props: OutputProps) {
     super();
@@ -48,8 +46,6 @@ export default class Output extends EventEmitter {
     this.isOpen = false;
     this.pwmFn = pwmFn ?? [];
     this.pwmIsLinear = pwmFn == null && this.pwmEnabled;
-
-    this.statsUpdatedAt = 0;
     this.enable();
   }
 
