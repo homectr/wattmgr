@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import logger from './logger';
-import * as wm from './wattmgr';
+import { WattManager, WattManagerProps } from './wattmgr';
 import Output from './output';
 import * as mqtt from './mqttclient';
 import * as ENV from './ENV';
@@ -10,6 +10,13 @@ import { config } from './ENV';
 
 const log = logger.child({ module: 'app' });
 let isRunning = true;
+const wmOptions: WattManagerProps = {
+  mqttClient: mqtt.client,
+  readInputFrom: ENV.config.mqtt?.read_input_from,
+  clientId: ENV.config.mqtt?.client_id ?? 'wattmgr',
+  optimizeInterval: ENV.config.optimize.interval ?? 15,
+};
+const wm = new WattManager(wmOptions);
 
 log.info('=== Starting Watt Manager app ===');
 

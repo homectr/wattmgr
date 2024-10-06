@@ -39,6 +39,8 @@ interface FileConfig {
     host: string;
     username?: string;
     password?: string;
+    /** topic to read available power from */
+    read_input_from?: string;
   };
   optimize: {
     /** optimization interval in seconds */
