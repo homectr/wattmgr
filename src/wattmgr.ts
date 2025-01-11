@@ -95,7 +95,7 @@ export class WattManager {
     // wait for outputs to close
     const thisObj = this;
     setTimeout(() => {
-      this.mqttClient.end();
+      thisObj.mqttClient.end();
       thisObj.isRunning = false;
     }, 1000);
   }
