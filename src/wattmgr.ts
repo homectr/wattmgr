@@ -194,7 +194,7 @@ export class WattManager {
 
     // longer timeout results in longer wait before service restart
     if (this.isRunning) {
-      setTimeout(this.loop, 1000);
+      setTimeout(() => this.loop(), 1000);
     }
   }
 }
