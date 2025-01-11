@@ -118,7 +118,7 @@ export default class Output extends EventEmitter {
    */
   public disable() {
     if (!this.isEnabled) {
-      log.info(`Output disabled o=${this.id}. Closing...`);
+      log.info(`Disabling output o=${this.id}. Closing...`);
     }
     this.isEnabled = false;
     this.emit('disable');
@@ -131,7 +131,7 @@ export default class Output extends EventEmitter {
   public enable() {
     if (!this.isEnabled) {
       log.info(
-        `Output enabled o=${this.id} pwm=${this.pwmEnabled ? 'yes' : 'no'} pwmFn=${
+        `Enabling output o=${this.id} pwm=${this.pwmEnabled ? 'yes' : 'no'} pwmFn=${
           this.pwmFn.length > 0 ? this.pwmFn.toString() : 'no'
         }`
       );

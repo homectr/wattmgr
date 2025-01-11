@@ -121,7 +121,7 @@ export class WattManager {
       this.mqttClient.publish(`${otopic}/enabled`, 'on', { qos: 1 });
     });
     o.on('pwm', (pwm: number) => {
-      log.debug(`Output pwm changed o=${o.id} dc=${pwm}`);
+      log.debug(`Output pwm o=${o.id} dc=${pwm}`);
       this.mqttClient.publish(`${otopic}/pwm`, pwm.toString(), { qos: 1 });
     });
 
@@ -182,6 +182,13 @@ export class WattManager {
       this.mqttClient.publish(this.topics.alive(), new Date().toISOString(), {
         qos: 1,
         retain: true,
+      });
+      this.outputs.forEach((o) => {
+        if (o.isEnabled) {
+          o.emit('enable');
+        } else {
+          o.emit('disable');
+        }
       });
     }
 
