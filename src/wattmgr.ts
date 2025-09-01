@@ -44,7 +44,7 @@ export class WattManager {
   constructor(props: WattManagerProps) {
     this.clientId = props.clientId;
     log.info('Creating WattManager');
-    this.optimizeInterval = props.optimizeInterval ?? 15;
+    this.optimizeInterval = (props.optimizeInterval ?? 15) * 1000; // default 15 seconds
     this.topics = {
       input: () => `${props.clientId}/input`,
       output: () => `${props.clientId}/output`,
