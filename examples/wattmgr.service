@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/opt/wattmgr
-ExecStart=/usr/bin/node ./dist/main.js -c /etc/wattmgr.cfg -l /var/log/wattmgr/wattmgr.log -v info
+ExecStart=/usr/bin/node ./dist/main.js -c /etc/wattmgr.cfg -l /var/log/wattmgr/wattmgr.log
 Environment=NODE_ENV=production
 Restart=on-failure
 RestartSec=5s
