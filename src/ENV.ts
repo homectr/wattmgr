@@ -6,12 +6,6 @@ export const DEBUG = 'mqttc';
 
 export const argv = yargs
   .options({
-    verbose: {
-      alias: 'v',
-      type: 'string',
-      demandOption: true,
-      description: 'log verbose level',
-    },
     config: {
       alias: 'c',
       type: 'string',
@@ -58,6 +52,7 @@ interface FileConfig {
     /** PWM function points [pwm_level,power][]*/
     pwm_fn?: [number, number][];
   }[];
+  log_level?: string;
 }
 
 const defaultConfig: FileConfig = {
@@ -69,6 +64,7 @@ const defaultConfig: FileConfig = {
     interval: 15,
   },
   outputs: [],
+  log_level: 'info',
 };
 
 export const config = readConfig(argv.config);

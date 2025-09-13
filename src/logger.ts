@@ -1,7 +1,7 @@
 import winston from 'winston';
 import { format } from 'logform';
 
-import { argv } from './ENV';
+import { argv, config } from './ENV';
 
 const fmt = format.combine(
   format.timestamp(),
@@ -24,7 +24,7 @@ export function createLogger(
   return logger;
 }
 
-const logger = createLogger(argv.verbose, argv.logfile, {
+const logger = createLogger(config.log_level ?? 'info', argv.logfile, {
   consolelog: (argv.console ?? false) === true,
 });
 
